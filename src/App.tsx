@@ -1,26 +1,23 @@
-import type { Component } from 'solid-js';
-
-import logo from './logo.svg';
-import styles from './App.module.css';
-
+import { Component, onMount } from "solid-js";
+import LogicFlow from "@logicflow/core";
+import "@logicflow/core/dist/style/index.css";
+import style from "./App.module.css";
 const App: Component = () => {
+  let dom: HTMLDivElement | undefined = undefined;
+  onMount(() => {
+    let lf = new LogicFlow({
+      container: dom!,
+      grid: {
+        type: "dot",
+        size: 20,
+      },
+    });
+    lf.render();
+  });
   return (
-    <div class={styles.App}>
-      <header class={styles.header}>
-        <img src={logo} class={styles.logo} alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          class={styles.link}
-          href="https://github.com/solidjs/solid"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn Solid
-        </a>
-      </header>
-    </div>
+    <div
+      id={style.container}
+      ref={dom}></div>
   );
 };
 
