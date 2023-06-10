@@ -4,7 +4,9 @@ import {
   GraphModel,
   NodeConfig,
 } from "@logicflow/core";
+import { nodeDefinition } from "../../types";
 import { getBpmnId } from "../../utils";
+import startEventSvg from "./startEvent.svg?raw";
 class StartEventModel extends CircleNodeModel {
   static extendKey = "StartEventModel";
   constructor(data: NodeConfig, graphModel: GraphModel) {
@@ -44,6 +46,7 @@ class StartEventView extends CircleNode {
 }
 export let startEvent: nodeDefinition = {
   name: "开始节点",
+  icon: startEventSvg,
   type: "bpmn:startEvent",
   model: StartEventModel,
   view: StartEventView,

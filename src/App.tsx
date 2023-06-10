@@ -1,23 +1,15 @@
-import { Component, onMount } from "solid-js";
-import LogicFlow from "@logicflow/core";
+import { type Component } from "solid-js";
 import "@logicflow/core/dist/style/index.css";
-import style from "./App.module.css";
-const App: Component = () => {
-  let dom: HTMLDivElement | undefined = undefined;
-  onMount(() => {
-    let lf = new LogicFlow({
-      container: dom!,
-      grid: {
-        type: "dot",
-        size: 20,
-      },
-    });
-    lf.render();
-  });
+
+import { Flow } from "./components/logicFlow";
+import { Logicflow } from "./components/logicFlow/class";
+let App: Component = () => {
+  let Lf: Logicflow;
   return (
-    <div
-      id={style.container}
-      ref={dom}></div>
+    <Flow
+      lf={(lf) => {
+        Lf = lf;
+      }}></Flow>
   );
 };
 

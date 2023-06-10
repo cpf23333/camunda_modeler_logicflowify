@@ -6,7 +6,8 @@ import {
   h,
 } from "@logicflow/core";
 import { getBpmnId } from "../../utils";
-
+import { nodeDefinition } from "../../types";
+import endEventSvg from "./endEvent.svg?raw";
 class EndEventModel extends CircleNodeModel {
   static extendKey = "EndEventModel";
   constructor(data: NodeConfig, graphModel: GraphModel) {
@@ -67,6 +68,7 @@ class EndEventView extends CircleNode {
 
 export const endEvent: nodeDefinition = {
   type: "bpmn:endEvent",
+  icon: endEventSvg,
   view: EndEventView,
   model: EndEventModel,
   name: "结束节点",
