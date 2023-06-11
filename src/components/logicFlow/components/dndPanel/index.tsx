@@ -18,21 +18,21 @@ export let LeftDndPanel: Component<Props> = (props) => {
     });
   };
   return (
-    <div class={style.nodes}>
+    <ul class={style.nodes}>
       <For
         each={nodes}
         fallback={<div>渲染失败</div>}>
         {(item) => {
           return (
-            <div
+            <li
               class={style.nodeItem}
               onMouseDown={() => startDrag(item)}>
               <div innerHTML={item.icon}></div>
               {item.name}
-            </div>
+            </li>
           );
         }}
       </For>
-    </div>
+    </ul>
   );
 };

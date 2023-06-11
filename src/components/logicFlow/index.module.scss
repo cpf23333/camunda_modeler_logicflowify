@@ -1,13 +1,14 @@
-.container{
-    height: 100%;
-    width: 100%;
-    text-align: center;
-    overflow: hidden;
-    display: flex;
+.container {
+  height: 100%;
+  width: 100%;
+  text-align: center;
+  overflow: hidden;
+  display: flex;
+  --rightPanelWidth: 300px;
 }
-.logicFLowContainer{
-    height: 100%;
-    width: 100%;
-    text-align: center;
-    overflow: hidden;
+.logicFLowContainer {
+  height: 100%;
+  width: calc(100% - var(--rightPanelWidth));
+  text-align: center;
+  overflow: hidden;
 }

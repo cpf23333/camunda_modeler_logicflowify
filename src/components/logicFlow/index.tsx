@@ -11,6 +11,7 @@ import style from "./index.module.scss";
 import { LeftDndPanel } from "./components/dndPanel";
 import { RightPanel } from "./components/rightPanel";
 import { nodeDefinition } from "./types";
+import { BaseEdgeModel, BaseNodeModel } from "@logicflow/core";
 interface Props {
   /**当前状态是编辑还是查看
    * @type {"edit"|"view"}
@@ -29,7 +30,7 @@ export let Flow: Component<Props> = (props) => {
   let [shouldShowRightPanel, setShouldShowRightPanel] =
     createSignal<boolean>(true);
   let [currentNodeOrEdge, setCurrentNodeOrEdge] = createSignal<
-    nodeDefinition | undefined
+    BaseNodeModel | BaseEdgeModel | undefined
   >(undefined);
   let updateLf = () => {
     if (props.state === "edit") {
@@ -54,6 +55,11 @@ export let Flow: Component<Props> = (props) => {
       }
       lf().on("node:click,edge:click", (data) => {
         console.log(data);
+        let nodeOrEdge = lf().getModelById(data.data.id);
+        setCurrentNodeOrEdge(nodeOrEdge);
+      });
+      lf().on("blank:click", () => {
+        setCurrentNodeOrEdge(undefined);
       });
     });
   };
@@ -69,7 +75,9 @@ export let Flow: Component<Props> = (props) => {
         class={style.logicFLowContainer}
         ref={dom}></div>
       {shouldShowRightPanel() ? (
-        <RightPanel currentNodeOrEdge={currentNodeOrEdge()}></RightPanel>
+        <RightPanel
+          currentNodeOrEdge={currentNodeOrEdge()}
+          lf={lf()}></RightPanel>
       ) : (
         ""
       )}

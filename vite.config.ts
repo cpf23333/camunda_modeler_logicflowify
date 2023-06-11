@@ -1,11 +1,11 @@
 import { Plugin, defineConfig } from "vite";
 import solidPlugin from "vite-plugin-solid";
 import devtools from "solid-devtools/vite";
-import path from "path";
+import { resolve } from "path";
 import { visualizer } from "rollup-plugin-visualizer";
 import compress from "vite-plugin-compression";
 function _resolve(dir: string) {
-  return path.resolve(__dirname, dir);
+  return resolve(__dirname, dir);
 }
 let addOnPlugin: Array<Plugin> = [];
 if (process.env.NODE_ENV === "production") {

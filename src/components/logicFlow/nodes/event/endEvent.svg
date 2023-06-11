@@ -1,10 +1,5 @@
 <svg>
-    <g>
-        <circle cx="18" cy="18" r="18"
-            style="stroke-linecap: round; stroke-linejoin: round; stroke: rgb(34, 36, 42); stroke-width: 4px; fill: white; fill-opacity: 0.95;">
-        </circle>
-    </g>
-    <rect x="0" y="0" width="36" height="36" style="fill: none; stroke-opacity: 0; stroke: white; stroke-width: 15px;">
-    </rect>
-    <rect x="-6" y="-6" rx="4" width="48" height="48" style="fill: none;"></rect>
+    <circle cx="18" cy="18" r="16"
+        style="stroke-linecap: round; stroke-linejoin: round; stroke: rgb(34, 36, 42); stroke-width: 4px; fill: white; fill-opacity: 0.95;">
+    </circle>
 </svg>

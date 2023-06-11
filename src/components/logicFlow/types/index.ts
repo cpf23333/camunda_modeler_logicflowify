@@ -11,8 +11,9 @@ type checkCurrentOrInitParams = {
   json: Record<string, any>;
   lf: Logicflow;
 };
-type renderParams = checkCurrentOrInitParams & {
+export type renderParams = {
   currentModel: BaseEdgeModel | BaseNodeModel;
+  lf: Logicflow;
 };
 
 /**bpmn节点定义 */
@@ -38,6 +39,7 @@ export interface nodeDefinition {
   view: typeof BaseNode | typeof BaseEdge;
   /**初始化节点面板数据 */
   initModel?: (obj: checkCurrentOrInitParams) => Record<string, any> | void;
+  /**右侧属性面板的渲染函数 */
   modelRender?: (obj: renderParams) => JSX.Element;
   /**传入json数据，返回是否为当前节点 */
   isCurrentNode?: (obj: checkCurrentOrInitParams) => boolean | void;
