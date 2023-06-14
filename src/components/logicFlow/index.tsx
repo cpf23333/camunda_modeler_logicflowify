@@ -10,8 +10,8 @@ import { allNodes } from "./nodes";
 import style from "./index.module.scss";
 import { LeftDndPanel } from "./components/dndPanel";
 import { RightPanel } from "./components/rightPanel";
-import { nodeDefinition } from "./types";
 import { BaseEdgeModel, BaseNodeModel } from "@logicflow/core";
+import { sequenceFlow } from "./nodes/edges/sequenceFlow";
 interface Props {
   /**当前状态是编辑还是查看
    * @type {"edit"|"view"}
@@ -24,11 +24,10 @@ interface Props {
 }
 export let Flow: Component<Props> = (props) => {
   props = mergeProps({ state: "edit" } as Props, props);
-  // let lf: Logicflow = undefined as unknown as Logicflow;
   let [lf, setLf] = createSignal<Logicflow>(undefined as unknown as Logicflow);
   let dom: HTMLDivElement | undefined = undefined;
   let [shouldShowRightPanel, setShouldShowRightPanel] =
-    createSignal<boolean>(true);
+    createSignal<boolean>(false);
   let [currentNodeOrEdge, setCurrentNodeOrEdge] = createSignal<
     BaseNodeModel | BaseEdgeModel | undefined
   >(undefined);
@@ -44,7 +43,9 @@ export let Flow: Component<Props> = (props) => {
         },
       }),
     );
+    setShouldShowRightPanel(true);
     lf().batchRegister(Object.values(allNodes));
+    lf().setDefaultEdgeType(sequenceFlow.type);
     lf().render();
     if (props.lf) {
       props.lf(lf());
@@ -54,7 +55,6 @@ export let Flow: Component<Props> = (props) => {
       if (props.state === "edit") {
       }
       lf().on("node:click,edge:click", (data) => {
-        console.log(data);
         let nodeOrEdge = lf().getModelById(data.data.id);
         setCurrentNodeOrEdge(nodeOrEdge);
       });

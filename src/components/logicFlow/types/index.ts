@@ -5,13 +5,19 @@ import {
   BaseNodeModel,
 } from "@logicflow/core";
 import { JSX } from "solid-js/jsx-runtime";
-import { Logicflow } from "../class";
+import { Forms, Logicflow } from "../class";
+import { createStore } from "solid-js/store";
+type initParams = {
+  lf: Logicflow;
+  model: BaseNodeModel | BaseEdgeModel;
+};
 type checkCurrentOrInitParams = {
   /**这个节点的json数据 */
   json: Record<string, any>;
   lf: Logicflow;
 };
 export type renderParams = {
+  /**当前选中的节点或线 */
   currentModel: BaseEdgeModel | BaseNodeModel;
   lf: Logicflow;
 };
@@ -37,14 +43,21 @@ export interface nodeDefinition {
   model: typeof BaseNodeModel | typeof BaseEdgeModel;
   /**logicFlow注册节点时需要的view */
   view: typeof BaseNode | typeof BaseEdge;
-  /**初始化节点面板数据 */
-  initModel?: (obj: checkCurrentOrInitParams) => Record<string, any> | void;
+  /**初始化节点面板数据
+   *
+   * 返回值就是存储的数据
+   *
+   * view的properties也在这里面设置
+   */
+  initModel?: (
+    params: initParams,
+  ) => ReturnType<typeof createStore<Forms<any, any, any, any>>>;
   /**右侧属性面板的渲染函数 */
-  modelRender?: (obj: renderParams) => JSX.Element;
+  modelRender?: (params: renderParams) => JSX.Element;
   /**传入json数据，返回是否为当前节点 */
-  isCurrentNode?: (obj: checkCurrentOrInitParams) => boolean | void;
+  isCurrentNode?: (params: checkCurrentOrInitParams) => boolean | void;
   /**若isCurrentNode返回值为true，则会调用这个函数 */
-  adapterIn?: (obj: checkCurrentOrInitParams) => Record<string, any> | void;
+  adapterIn?: (params: checkCurrentOrInitParams) => Record<string, any> | void;
   /**将该节点实例导出为json */
-  adapterOut?: (obj: renderParams) => Record<string, any>;
+  adapterOut?: (params: renderParams) => Record<string, any>;
 }

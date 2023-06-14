@@ -7,6 +7,8 @@ import {
 import { nodeDefinition } from "../../types";
 import { getBpmnId } from "../../utils";
 import startEventSvg from "./startEvent.svg?raw";
+import { General } from "../../components/rightPanel/common/general";
+import { createStore } from "solid-js/store";
 class StartEventModel extends CircleNodeModel {
   static extendKey = "StartEventModel";
   constructor(data: NodeConfig, graphModel: GraphModel) {
@@ -50,4 +52,22 @@ export let startEvent: nodeDefinition = {
   type: "bpmn:startEvent",
   model: StartEventModel,
   view: StartEventView,
+  initModel(params) {
+    console.log("自定义的初始化");
+    return createStore({
+      baseModel: {},
+      collapseData: {},
+      extensionElements: [],
+      generalData: { id: params.model.id, name: params.model.text.value },
+    });
+  },
+  modelRender: (params) => {
+    return (
+      <div>
+        <General
+          model={params.currentModel}
+          lf={params.lf}></General>
+      </div>
+    );
+  },
 };

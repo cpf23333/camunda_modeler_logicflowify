@@ -1,29 +1,17 @@
-import { Component, JSX, createEffect, createSignal } from "solid-js";
+import { Accessor, Component, Signal, createRenderEffect } from "solid-js";
 import style from "./style.module.scss";
-import { nodeDefinition, renderParams } from "../../types";
+import { nodeDefinition } from "../../types";
 import { Logicflow } from "../../class";
 import { BaseEdgeModel, BaseNodeModel } from "@logicflow/core";
 import { allNodes } from "../../nodes";
-import { Form, FormItem } from "@/components/Form";
+import { Form } from "@/components/Form";
+import { General } from "./common/general";
 
 interface processFormProp {
   lf: Logicflow;
 }
 let processForm: Component<processFormProp> = (props) => {
-  let lf = props.lf;
-  let [value, setValue] = createSignal("aaa");
-  createEffect(() => {
-    console.log(value());
-  });
-  return [
-    <FormItem label="名称">
-      <input
-        value={value()}
-        onInput={(e) => {
-          setValue(e.target.value);
-        }}></input>
-    </FormItem>,
-  ];
+  return <General lf={props.lf}></General>;
 };
 let getTargetByType: (type: string) => nodeDefinition | undefined = (
   type: string,
@@ -34,25 +22,24 @@ interface RightPanelProp {
   lf: Logicflow;
 }
 export let RightPanel: Component<RightPanelProp> = (props) => {
-  let content;
-  let [render, setRender] = createSignal<(obj: renderParams) => JSX.Element>(
-    () => "",
-  );
-  createEffect(() => {
+  let getContent = () => {
     if (props.currentNodeOrEdge) {
       let target = getTargetByType(props.currentNodeOrEdge.type);
+
       if (target) {
         if (target.modelRender) {
-          let render = target.modelRender;
-          setRender(() => render);
-          return;
+          return target.modelRender({
+            lf: props.lf,
+            currentModel: props.currentNodeOrEdge,
+          });
         }
+        return "该节点无属性面板";
       }
-      setRender(() => () => "该节点无属性面板");
-    } else {
-      setRender(() => processForm);
     }
-  });
+    return processForm({
+      lf: props.lf,
+    });
+  };
   return (
     <div
       class={style.rightPanel}
@@ -60,9 +47,7 @@ export let RightPanel: Component<RightPanelProp> = (props) => {
       <Form
         labelSuffix="："
         labelPosition="top">
-        {render()
-          ? render()({ currentModel: props.currentNodeOrEdge!, lf: props.lf })
-          : ""}
+        {getContent()}
       </Form>
     </div>
   );

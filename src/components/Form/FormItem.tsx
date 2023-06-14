@@ -6,7 +6,6 @@ interface FormItemProp {
 }
 export let FormItem: Component<FormItemProp> = (props) => {
   let formProps = useContext(FormContext);
-  console.log(formProps);
   function getLabel() {
     if (!props.label) {
       return;

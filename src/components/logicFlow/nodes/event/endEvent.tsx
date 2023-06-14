@@ -8,6 +8,7 @@ import {
 import { getBpmnId } from "../../utils";
 import { nodeDefinition } from "../../types";
 import endEventSvg from "./endEvent.svg?raw";
+import { General } from "../../components/rightPanel/common/general";
 class EndEventModel extends CircleNodeModel {
   static extendKey = "EndEventModel";
   constructor(data: NodeConfig, graphModel: GraphModel) {
@@ -72,4 +73,13 @@ export const endEvent: nodeDefinition = {
   view: EndEventView,
   model: EndEventModel,
   name: "结束节点",
+  modelRender: (params) => {
+    return (
+      <div>
+        <General
+          model={params.currentModel}
+          lf={params.lf}></General>
+      </div>
+    );
+  },
 };

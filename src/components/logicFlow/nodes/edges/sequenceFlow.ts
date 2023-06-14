@@ -23,7 +23,7 @@ class SequenceFlowView extends PolylineEdge {
 export let sequenceFlow: nodeDefinition = {
   name: "连线",
   icon: "",
-  type: "",
+  type: "bpmn:sequenceFlow",
   model: SequenceFlowModel,
   view: SequenceFlowView,
 };
