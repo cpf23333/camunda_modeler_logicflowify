@@ -1,4 +1,4 @@
-import { Component, For, JSX } from "solid-js";
+import { Component, For } from "solid-js";
 import { nodeDefinition } from "../../types";
 import { startEvent } from "../../nodes/event/startEvent";
 import { endEvent } from "../../nodes/event/endEvent";

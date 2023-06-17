@@ -61,13 +61,4 @@ export let startEvent: nodeDefinition = {
       generalData: { id: params.model.id, name: params.model.text.value },
     });
   },
-  modelRender: (params) => {
-    return (
-      <div>
-        <General
-          model={params.currentModel}
-          lf={params.lf}></General>
-      </div>
-    );
-  },
 };

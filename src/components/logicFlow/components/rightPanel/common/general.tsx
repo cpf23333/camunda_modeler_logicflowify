@@ -23,12 +23,11 @@ export let General: Component<GeneralProp> = (props) => {
         if (props.model.text.value !== model.generalData.name) {
           props.model.updateText(model.generalData.name);
         }
-        if (props.model instanceof BaseNodeModel) {
-          if (props.model.id !== model.generalData.id) {
+        if (props.model.id !== model.generalData.id) {
+          lf.mvForm(props.model.id, model.generalData.id);
+          if (props.model instanceof BaseNodeModel) {
             lf.changeNodeId(props.model.id, model.generalData.id);
-          }
-        } else if (props.model instanceof BaseEdgeModel) {
-          if (props.model.id !== model.generalData.id) {
+          } else if (props.model instanceof BaseEdgeModel) {
             lf.changeEdgeId(props.model.id, model.generalData.id);
           }
         }

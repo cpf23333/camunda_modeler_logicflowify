@@ -2,3 +2,18 @@
   width: var(--rightPanelWidth);
   height: 100%;
 }
+.topContent{
+  margin-left: 10px;
+  display: flex;
+  align-items: center;
+  .icon{
+    margin-right: 20px;
+    :global(svg){
+      width: 36px;
+      height: 36px;
+    }
+  }
+  .name{
+    font-size: 18px;
+  }
+}

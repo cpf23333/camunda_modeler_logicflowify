@@ -11,6 +11,7 @@ type initParams = {
   lf: Logicflow;
   model: BaseNodeModel | BaseEdgeModel;
 };
+export type BaseModel = BaseNodeModel | BaseEdgeModel;
 type checkCurrentOrInitParams = {
   /**这个节点的json数据 */
   json: Record<string, any>;
@@ -52,6 +53,14 @@ export interface nodeDefinition {
   initModel?: (
     params: initParams,
   ) => ReturnType<typeof createStore<Forms<any, any, any, any>>>;
+  modelRenderCOnfig?: {
+    /**是否有通用块(编辑名称和id) 默认为true */
+    general: boolean;
+    /**是否存在文档块，默认为true */
+    documation: boolean;
+    /**是否存在拓展属性，默认为true */
+    extensionProperties: boolean;
+  };
   /**右侧属性面板的渲染函数 */
   modelRender?: (params: renderParams) => JSX.Element;
   /**传入json数据，返回是否为当前节点 */
