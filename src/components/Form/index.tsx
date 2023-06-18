@@ -1,7 +1,7 @@
 import { Component, JSX, createContext } from "solid-js";
 import style from "./style.module.scss";
 export { FormItem } from "./FormItem";
-type Position = "left" | "top";
+export type Position = "left" | "top";
 interface FromProp {
   children?: JSX.Element;
   /**label后缀，label字段为函数或labelPosition为top时失效 */

@@ -1,17 +1,16 @@
-import { Component, For } from "solid-js";
+import { Component, For, useContext } from "solid-js";
 import { nodeDefinition } from "../../types";
 import { startEvent } from "../../nodes/event/startEvent";
 import { endEvent } from "../../nodes/event/endEvent";
-import { Logicflow } from "../../class";
 import style from "./index.module.scss";
-interface Props {
-  lf: Logicflow;
-}
+import { LogicFlowContext } from "../..";
 
-export let LeftDndPanel: Component<Props> = (props) => {
+export let LeftDndPanel: Component = () => {
+  let lfContext = useContext(LogicFlowContext);
+  let providerData = lfContext.providerData;
   let nodes: Array<nodeDefinition> = [startEvent, endEvent];
   let startDrag = (node: nodeDefinition) => {
-    let dnd = props.lf.dnd;
+    let dnd = providerData.lf.dnd;
     dnd.startDrag({
       type: node.type,
       text: node.name,

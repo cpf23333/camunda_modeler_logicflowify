@@ -1,5 +1,6 @@
 import {
   Component,
+  createContext,
   createEffect,
   createSignal,
   mergeProps,
@@ -12,6 +13,16 @@ import { LeftDndPanel } from "./components/dndPanel";
 import { RightPanel } from "./components/rightPanel";
 import { BaseEdgeModel, BaseNodeModel } from "@logicflow/core";
 import { sequenceFlow } from "./nodes/edges/sequenceFlow";
+import { BaseModel } from "./types";
+import { createStore } from "solid-js/store";
+let contextStore = createStore<{ lf: Logicflow; currentModel?: BaseModel }>({
+  lf: undefined as unknown as Logicflow,
+  currentModel: undefined,
+});
+export let LogicFlowContext = createContext({
+  providerData: contextStore[0],
+  setProviderData: contextStore[1],
+});
 interface Props {
   /**当前状态是编辑还是查看
    * @type {"edit"|"view"}
@@ -24,63 +35,61 @@ interface Props {
 }
 export let Flow: Component<Props> = (props) => {
   props = mergeProps({ state: "edit" } as Props, props);
-  let [lf, setLf] = createSignal<Logicflow>(undefined as unknown as Logicflow);
+  let [providerData, setProviderData] = contextStore;
   let dom: HTMLDivElement | undefined = undefined;
   let [shouldShowRightPanel, setShouldShowRightPanel] =
     createSignal<boolean>(false);
-  let [currentNodeOrEdge, setCurrentNodeOrEdge] = createSignal<
-    BaseNodeModel | BaseEdgeModel | undefined
-  >(undefined);
   let updateLf = () => {
     if (props.state === "edit") {
     }
-    setLf(
-      new Logicflow({
-        container: dom!,
-        grid: {
-          type: "dot",
-          size: 20,
-        },
-      }),
-    );
-    setShouldShowRightPanel(true);
-    lf().batchRegister(Object.values(allNodes));
-    lf().setDefaultEdgeType(sequenceFlow.type);
-    lf().render();
-    if (props.lf) {
-      props.lf(lf());
-    }
-    createEffect(() => {
-      console.log("eidt");
-      if (props.state === "edit") {
-      }
-      lf().on("node:click,edge:click", (data) => {
-        let nodeOrEdge = lf().getModelById(data.data.id);
-        setCurrentNodeOrEdge(nodeOrEdge);
-      });
-      lf().on("blank:click", () => {
-        setCurrentNodeOrEdge(undefined);
-      });
+
+    let newLf = new Logicflow({
+      container: dom!,
+      grid: {
+        type: "dot",
+        size: 20,
+      },
     });
+    setProviderData("lf", newLf);
+    setShouldShowRightPanel(true);
+    newLf.batchRegister(Object.values(allNodes));
+    newLf.setDefaultEdgeType(sequenceFlow.type);
+    newLf.render();
+    console.log("eidt");
+    if (props.state === "edit") {
+    }
+    newLf.on("node:click,edge:click", (data) => {
+      console.log("点击");
+
+      let nodeOrEdge = newLf.getModelById(data.data.id);
+      setProviderData("currentModel", nodeOrEdge);
+    });
+    newLf.on("blank:click", () => {
+      setProviderData("currentModel", undefined);
+    });
+    if (props.lf) {
+      props.lf(newLf);
+    }
   };
   onMount(updateLf);
+
   return (
     <div classList={{ [style.container]: true }}>
-      {props.state === "edit" && lf ? (
-        <LeftDndPanel lf={lf()}></LeftDndPanel>
-      ) : (
-        ""
-      )}
-      <div
-        class={style.logicFLowContainer}
-        ref={dom}></div>
-      {shouldShowRightPanel() ? (
-        <RightPanel
-          currentNodeOrEdge={currentNodeOrEdge()}
-          lf={lf()}></RightPanel>
-      ) : (
-        ""
-      )}
+      <LogicFlowContext.Provider
+        value={{
+          providerData: contextStore[0],
+          setProviderData: contextStore[1],
+        }}>
+        {props.state === "edit" && providerData.lf ? (
+          <LeftDndPanel></LeftDndPanel>
+        ) : (
+          ""
+        )}
+        <div
+          class={style.logicFLowContainer}
+          ref={dom}></div>
+        {shouldShowRightPanel() ? <RightPanel></RightPanel> : ""}
+      </LogicFlowContext.Provider>
     </div>
   );
 };

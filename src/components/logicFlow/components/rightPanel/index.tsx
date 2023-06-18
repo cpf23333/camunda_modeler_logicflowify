@@ -1,4 +1,4 @@
-import { Component, createSignal } from "solid-js";
+import { Component, createSignal, useContext } from "solid-js";
 import style from "./style.module.scss";
 import { nodeDefinition } from "../../types";
 import { Logicflow } from "../../class";
@@ -7,6 +7,8 @@ import { allNodes } from "../../nodes";
 import { Form } from "@/components/Form";
 import { General } from "./common/general";
 import { Documentation } from "./common/documentation";
+import { LogicFlowContext } from "../..";
+import { ExtensionProperties } from "./common/extensionProperities";
 
 interface processFormProp {
   lf: Logicflow;
@@ -17,21 +19,19 @@ let processForm: Component<processFormProp> = (props) => {
 let getTargetByType: (type: string) => nodeDefinition | undefined = (
   type: string,
 ) => allNodes[type];
-interface RightPanelProp {
-  /**当前选中的节点或线 */
-  currentNodeOrEdge?: BaseEdgeModel | BaseNodeModel;
-  lf: Logicflow;
-}
+
 let defaultModelRenderConfig = {
   general: true,
   documation: true,
   extensionProperties: true,
 };
-export let RightPanel: Component<RightPanelProp> = (props) => {
+export let RightPanel: Component = () => {
+  let lfContext = useContext(LogicFlowContext);
+  let { providerData } = lfContext;
   let [pannelName, setPanelName] = createSignal({ name: "全局属性", icon: "" });
   let getContent = () => {
-    if (props.currentNodeOrEdge) {
-      let target = getTargetByType(props.currentNodeOrEdge.type);
+    if (providerData.currentModel) {
+      let target = getTargetByType(providerData.currentModel.type);
       if (target) {
         setPanelName({ name: target.name, icon: target.icon });
         let content = [];
@@ -42,24 +42,27 @@ export let RightPanel: Component<RightPanelProp> = (props) => {
         if (modelRenderConfig.general) {
           content.push(
             <General
-              model={props.currentNodeOrEdge}
-              lf={props.lf}></General>,
+              model={providerData.currentModel}
+              lf={providerData.lf}></General>,
           );
         }
         if (modelRenderConfig.documation) {
           content.push(
             <Documentation
-              currentNodeOrEdge={props.currentNodeOrEdge}
-              lf={props.lf}></Documentation>,
+              currentNodeOrEdge={providerData.currentModel}
+              lf={providerData.lf}></Documentation>,
           );
         }
         if (target.modelRender) {
           content.push(
             target.modelRender({
-              lf: props.lf,
-              currentModel: props.currentNodeOrEdge,
+              lf: providerData.lf,
+              currentModel: providerData.currentModel,
             }),
           );
+        }
+        if (modelRenderConfig.extensionProperties) {
+          content.push(<ExtensionProperties></ExtensionProperties>);
         }
         if (content.length) {
           return content;
@@ -69,7 +72,7 @@ export let RightPanel: Component<RightPanelProp> = (props) => {
     }
     setPanelName({ name: "全局属性", icon: "" });
     return processForm({
-      lf: props.lf,
+      lf: providerData.lf,
     });
   };
   return (
