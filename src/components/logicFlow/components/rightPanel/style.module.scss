@@ -1,19 +1,36 @@
 .rightPanel {
   width: var(--rightPanelWidth);
   height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
-.topContent{
-  margin-left: 10px;
+.topContent {
+  padding-left: 10px;
   display: flex;
   align-items: center;
-  .icon{
+  position: sticky;
+  top: 0;
+  background-color: white;
+  .icon {
     margin-right: 20px;
-    :global(svg){
-      width: 36px;
-      height: 36px;
-    }
+    display: inline-block;
+    height: 36px;
+    width: 36px;
   }
-  .name{
+  .name {
     font-size: 18px;
+  }
+}
+.form {
+  :global(svg) {
+    padding: 2px;
+    cursor: pointer;
+    & {
+      margin-right: 5px;
+    }
+    &:hover {
+      background-color: rgb(241, 242, 244);
+      border-radius: 50%;
+    }
   }
 }

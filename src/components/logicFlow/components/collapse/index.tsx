@@ -1,7 +1,7 @@
-import { Component, createUniqueId } from "solid-js";
+import { Component, JSX, Show, createUniqueId } from "solid-js";
 import { Logicflow } from "../../class";
 import { BaseModel } from "../../types";
-import { AiOutlineDown, AiOutlineRight } from "solid-icons/ai";
+import { AiOutlineDown, AiOutlinePlus, AiOutlineRight } from "solid-icons/ai";
 import style from "./style.module.scss";
 interface CollapseProp {
   /**标题 */
@@ -14,6 +14,8 @@ interface CollapseProp {
   model?: BaseModel;
   /**是否默认折叠，默认为true */
   defaultCollapse?: boolean;
+  /**如果配置了这个函数，那么就会有新增按钮 */
+  onAdd?: () => void;
 }
 export let Collapse: Component<CollapseProp> = (props) => {
   let defaultCollapse = props.defaultCollapse;
@@ -27,19 +29,35 @@ export let Collapse: Component<CollapseProp> = (props) => {
   if (state.collapseData[id] == undefined) {
     setState("collapseData", id, defaultCollapse);
   }
+  let toggleCollapse = () => {
+    setState("collapseData", id, !state.collapseData[id]);
+  };
   return (
     <div class={style.collapse}>
       <div
         class={style.title}
-        onClick={() => {
-          setState("collapseData", id, !state.collapseData[id]);
-        }}>
-        <span>{props.title}</span>
-        {state.collapseData[id] ? (
-          <AiOutlineDown size={20} />
-        ) : (
-          <AiOutlineRight size={20} />
-        )}
+        onClick={toggleCollapse}>
+        <span class={style["title-content"]}>{props.title}</span>
+        <span
+          class={style["title-icons"]}
+          onClick={(e) => {
+            e.stopPropagation();
+          }}>
+          <Show when={props.onAdd}>
+            <AiOutlinePlus
+              onClick={() => {
+                if (!state.collapseData[id]) {
+                  setState("collapseData", id, true);
+                }
+                props.onAdd && props.onAdd();
+              }}></AiOutlinePlus>
+          </Show>
+          {state.collapseData[id] ? (
+            <AiOutlineDown onClick={toggleCollapse} />
+          ) : (
+            <AiOutlineRight onClick={toggleCollapse} />
+          )}
+        </span>
       </div>
       {state.collapseData[id] && props.children ? (
         <div class="content">{props.children}</div>

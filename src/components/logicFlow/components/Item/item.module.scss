@@ -1,0 +1,36 @@
+.item {
+  .title {
+    user-select: none;
+    display: flex;
+    .delete {
+      margin-left: auto;
+      fill: red;
+      cursor: pointer;
+    }
+  }
+
+  .content {
+    display: flex;
+    .left {
+      width: 20px;
+    }
+    .left::after {
+      content: "";
+      display: block;
+      position: relative;
+      left: 10px;
+      background-color: rgb(80, 85, 98);
+      width: 2px;
+      height: 100%;
+    }
+    .right {
+      width: 100%;
+      .title {
+        display: flex;
+        .icon {
+          margin-left: auto;
+        }
+      }
+    }
+  }
+}

@@ -37,7 +37,7 @@ export let RightPanel: Component = () => {
         let content = [];
         let modelRenderConfig = {
           ...defaultModelRenderConfig,
-          ...(target.modelRenderCOnfig || {}),
+          ...(target.modelRenderConfig || {}),
         };
         if (modelRenderConfig.general) {
           content.push(
@@ -87,6 +87,9 @@ export let RightPanel: Component = () => {
       </div>
       <Form
         labelSuffix="："
+        classList={{
+          [style.form]: true,
+        }}
         labelPosition="top">
         {getContent()}
       </Form>

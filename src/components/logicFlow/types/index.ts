@@ -53,7 +53,7 @@ export interface nodeDefinition {
   initModel?: (
     params: initParams,
   ) => ReturnType<typeof createStore<Forms<any, any, any, any>>>;
-  modelRenderCOnfig?: {
+  modelRenderConfig?: {
     /**是否有通用块(编辑名称和id) 默认为true */
     general: boolean;
     /**是否存在文档块，默认为true */

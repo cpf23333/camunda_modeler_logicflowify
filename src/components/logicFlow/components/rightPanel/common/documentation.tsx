@@ -18,7 +18,11 @@ export let Documentation: Component<DocumentationProp> = (props) => {
       id="documatation">
       <FormItem label="节点文档">
         <textarea
-          style={{ width: "-webkit-fill-available" }}
+          style={{
+            width: "-webkit-fill-available",
+            "max-width": "100%",
+            "min-width": "100%",
+          }}
           value={state.generalData.document || ""}
           onChange={(e) => {
             setState("generalData", "document", e.target.value);

@@ -7,8 +7,14 @@
     user-select: none;
     display: flex;
     align-items: center;
-    :global(> svg) {
-      margin-left: auto;
+    .title-content {
+      max-width: 50%;
+      width: 50%;
+    }
+    .title-icons {
+      width: 50%;
+      display: flex;
+      justify-content: flex-end;
     }
   }
 }

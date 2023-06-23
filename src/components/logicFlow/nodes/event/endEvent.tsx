@@ -78,7 +78,8 @@ export const endEvent: nodeDefinition = {
       <div>
         <General
           model={params.currentModel}
-          lf={params.lf}></General>
+          lf={params.lf}
+        />
       </div>
     );
   },

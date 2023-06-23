@@ -7,7 +7,6 @@ import {
 import { nodeDefinition } from "../../types";
 import { getBpmnId } from "../../utils";
 import startEventSvg from "./startEvent.svg?raw";
-import { General } from "../../components/rightPanel/common/general";
 import { createStore } from "solid-js/store";
 class StartEventModel extends CircleNodeModel {
   static extendKey = "StartEventModel";
