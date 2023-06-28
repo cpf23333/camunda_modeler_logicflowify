@@ -1,7 +1,6 @@
 import {
   Component,
   createContext,
-  createEffect,
   createSignal,
   mergeProps,
   onMount,
@@ -11,10 +10,13 @@ import { allNodes } from "./nodes";
 import style from "./index.module.scss";
 import { LeftDndPanel } from "./components/dndPanel";
 import { RightPanel } from "./components/rightPanel";
-import { BaseEdgeModel, BaseNodeModel } from "@logicflow/core";
 import { sequenceFlow } from "./nodes/edges/sequenceFlow";
 import { BaseModel } from "./types";
 import { createStore } from "solid-js/store";
+import { ContextPad } from "./plugins/contextPad";
+import "@logicflow/core/dist/style/index.css";
+import "@logicflow/extension/lib/style/index.css";
+import "./style/index.scss";
 let contextStore = createStore<{ lf: Logicflow; currentModel?: BaseModel }>({
   lf: undefined as unknown as Logicflow,
   currentModel: undefined,
@@ -45,10 +47,13 @@ export let Flow: Component<Props> = (props) => {
 
     let newLf = new Logicflow({
       container: dom!,
+      nodeTextEdit: false,
+      edgeTextEdit: false,
       grid: {
         type: "dot",
         size: 20,
       },
+      plugins: [ContextPad],
     });
     setProviderData("lf", newLf);
     setShouldShowRightPanel(true);

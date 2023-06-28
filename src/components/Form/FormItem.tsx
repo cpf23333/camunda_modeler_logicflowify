@@ -1,13 +1,13 @@
-import { Component, JSX, useContext } from "solid-js";
+import { Component, JSXElement, useContext } from "solid-js";
 import { FormContext } from ".";
 import type { Position } from "./index";
 interface FormItemProp {
-  label?: string | (() => JSX.Element);
+  label?: string | (() => JSXElement);
   /**label后缀，label字段为函数或labelPosition为top时失效 */
   labelSuffix?: string;
   /**用于覆盖Form组件的配置 */
   labelPosition?: Position;
-  children?: JSX.Element;
+  children?: JSXElement;
 }
 export let FormItem: Component<FormItemProp> = (props) => {
   let formProps = useContext(FormContext);

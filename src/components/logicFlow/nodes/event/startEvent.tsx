@@ -8,6 +8,7 @@ import { nodeDefinition } from "../../types";
 import { getBpmnId } from "../../utils";
 import startEventSvg from "./startEvent.svg?raw";
 import { createStore } from "solid-js/store";
+import { CustomIcon } from "solid-icons";
 class StartEventModel extends CircleNodeModel {
   static extendKey = "StartEventModel";
   constructor(data: NodeConfig, graphModel: GraphModel) {
@@ -46,8 +47,21 @@ class StartEventView extends CircleNode {
   static extendKey = "StartEventNode";
 }
 export let startEvent: nodeDefinition = {
-  name: "开始节点",
-  icon: startEventSvg,
+  name: () => "开始节点",
+  icon: (config = {}) => (
+    <CustomIcon
+      size={config.size}
+      src={{
+        a: {
+          viewBox: "0 0 32 32",
+          fill: "white",
+          "stroke-width": "2",
+          "stroke-opacity": "1",
+          stroke: "black",
+        },
+        c: `<circle cx="16" cy="16" r="16" fill="#FFFFFF" fill-opacity="1" stroke-width="2" stroke="#000000" stroke-opacity="1"></circle>`,
+      }}></CustomIcon>
+  ),
   type: "bpmn:startEvent",
   model: StartEventModel,
   view: StartEventView,

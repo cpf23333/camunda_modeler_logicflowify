@@ -11,6 +11,7 @@ import { Collapse } from "../../components/collapse/index";
 import { FormItem } from "@/components/Form";
 import { TextArea } from "@/components/Form/TextArea";
 import { startEvent } from "../event/startEvent";
+import { CustomIcon } from "solid-icons";
 class SequenceFlowModel extends PolylineEdgeModel {
   static extendKey = "SequenceFlowModel";
   constructor(data: EdgeConfig, graphModel: GraphModel) {
@@ -25,8 +26,19 @@ class SequenceFlowView extends PolylineEdge {
   static extendKey = "SequenceFlowEdge";
 }
 export let sequenceFlow: nodeDefinition = {
-  name: "连线",
-  icon: "",
+  name: () => "连线",
+  icon: (config = {}) => {
+    return (
+      <CustomIcon
+        size={config.size}
+        src={{
+          a: {
+            viewBox: "0 0 32 32",
+          },
+          c: `<path d="M32 17 L32 18 L0 18 L0 17z" fill="black" stroke-width="1" stroke="transparent" stroke-dasharray="4, 4"></path>`,
+        }}></CustomIcon>
+    );
+  },
   type: "bpmn:sequenceFlow",
   model: SequenceFlowModel,
   view: SequenceFlowView,

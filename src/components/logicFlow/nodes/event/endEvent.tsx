@@ -7,8 +7,8 @@ import {
 } from "@logicflow/core";
 import { getBpmnId } from "../../utils";
 import { nodeDefinition } from "../../types";
-import endEventSvg from "./endEvent.svg?raw";
 import { General } from "../../components/rightPanel/common/general";
+import { CustomIcon } from "solid-icons";
 class EndEventModel extends CircleNodeModel {
   static extendKey = "EndEventModel";
   constructor(data: NodeConfig, graphModel: GraphModel) {
@@ -69,18 +69,21 @@ class EndEventView extends CircleNode {
 
 export const endEvent: nodeDefinition = {
   type: "bpmn:endEvent",
-  icon: endEventSvg,
-  view: EndEventView,
-  model: EndEventModel,
-  name: "结束节点",
-  modelRender: (params) => {
+  icon: (config = {}) => {
     return (
-      <div>
-        <General
-          model={params.currentModel}
-          lf={params.lf}
-        />
-      </div>
+      <CustomIcon
+        size={config?.size}
+        src={{
+          a: {
+            viewBox: "0 0 32 32",
+            fill: "white",
+          },
+          c: `<circle cx="16" cy="16" r="16" fill="#FFFFFF" fill-opacity="1" stroke-width="2" stroke="#000000" stroke-opacity="1"></circle>
+          <circle fill="#FFFFFF" stroke="#000000" stroke-width="2" cx="16" cy="16" r="10"></circle>`,
+        }}></CustomIcon>
     );
   },
+  view: EndEventView,
+  model: EndEventModel,
+  name: () => "结束节点",
 };

@@ -1,4 +1,4 @@
-import { Component, createSignal, useContext } from "solid-js";
+import { Component, JSX, JSXElement, createSignal, useContext } from "solid-js";
 import style from "./style.module.scss";
 import { nodeDefinition } from "../../types";
 import { Logicflow } from "../../class";
@@ -28,7 +28,10 @@ let defaultModelRenderConfig = {
 export let RightPanel: Component = () => {
   let lfContext = useContext(LogicFlowContext);
   let { providerData } = lfContext;
-  let [pannelName, setPanelName] = createSignal({ name: "全局属性", icon: "" });
+  let [pannelName, setPanelName] = createSignal<{
+    name: () => string;
+    icon: () => JSXElement;
+  }>({ name: () => "全局属性", icon: () => "" });
   let getContent = () => {
     if (providerData.currentModel) {
       let target = getTargetByType(providerData.currentModel.type);
@@ -70,7 +73,7 @@ export let RightPanel: Component = () => {
         return "该节点无属性面板";
       }
     }
-    setPanelName({ name: "全局属性", icon: "" });
+    setPanelName({ name: () => "全局属性", icon: () => "" });
     return processForm({
       lf: providerData.lf,
     });
@@ -80,10 +83,8 @@ export let RightPanel: Component = () => {
       class={style.rightPanel}
       style={{ border: "1px solid" }}>
       <div class={style.topContent}>
-        <span
-          class={style.icon}
-          innerHTML={pannelName().icon}></span>
-        <span class={style.name}>{pannelName().name}</span>
+        <span class={style.icon}>{pannelName().icon()}</span>
+        <span class={style.name}>{pannelName().name()}</span>
       </div>
       <Form
         labelSuffix="："

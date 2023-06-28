@@ -12,6 +12,7 @@ type initParams = {
   model: BaseNodeModel | BaseEdgeModel;
 };
 export type BaseModel = BaseNodeModel | BaseEdgeModel;
+export type BaseView = BaseNode | BaseEdge;
 type checkCurrentOrInitParams = {
   /**这个节点的json数据 */
   json: Record<string, any>;
@@ -26,9 +27,14 @@ export type renderParams = {
 /**bpmn节点定义 */
 export interface nodeDefinition {
   /**用户可以看到的节点类型名称 */
-  name: string;
-  /**svg图标 */
-  icon: string;
+  name: () => string;
+  /**svg图标
+   *
+   * 设计上为必填
+   *
+   * 如果真的不需要，传个`()=>""`吧
+   */
+  icon: (config?: { size?: string | number }) => JSX.Element;
   /**
    * 节点类型，视为类型的id，一般直接传入bpmn标签名称即可
    *

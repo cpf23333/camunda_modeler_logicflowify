@@ -1,4 +1,4 @@
-import { Component, For, useContext } from "solid-js";
+import { Component, For, JSX, useContext } from "solid-js";
 import { nodeDefinition } from "../../types";
 import { startEvent } from "../../nodes/event/startEvent";
 import { endEvent } from "../../nodes/event/endEvent";
@@ -13,7 +13,7 @@ export let LeftDndPanel: Component = () => {
     let dnd = providerData.lf.dnd;
     dnd.startDrag({
       type: node.type,
-      text: node.name,
+      text: node.name(),
     });
   };
   return (
@@ -26,8 +26,8 @@ export let LeftDndPanel: Component = () => {
             <li
               class={style.nodeItem}
               onMouseDown={() => startDrag(item)}>
-              <div innerHTML={item.icon}></div>
-              {item.name}
+              <div>{item.icon({ size: 36 })}</div>
+              {item.name()}
             </li>
           );
         }}
