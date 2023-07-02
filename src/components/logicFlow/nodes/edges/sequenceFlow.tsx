@@ -10,7 +10,7 @@ import { getBpmnId } from "../../utils";
 import { Collapse } from "../../components/collapse/index";
 import { FormItem } from "@/components/Form";
 import { TextArea } from "@/components/Form/TextArea";
-import { startEvent } from "../event/startEvent";
+import { StartEvent } from "../event/startEvent";
 import { CustomIcon } from "solid-icons";
 class SequenceFlowModel extends PolylineEdgeModel {
   static extendKey = "SequenceFlowModel";
@@ -44,7 +44,7 @@ export let sequenceFlow: nodeDefinition = {
   view: SequenceFlowView,
   modelRender(params) {
     let sourceNode: BaseNodeModel = params.currentModel.sourceNode;
-    if (sourceNode.type === startEvent.type) {
+    if (sourceNode.type === StartEvent.type) {
       return;
     }
     let [state, setState] = params.lf.getForm<{

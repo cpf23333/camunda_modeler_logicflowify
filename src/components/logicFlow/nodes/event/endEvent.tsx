@@ -67,7 +67,7 @@ class EndEventView extends CircleNode {
   }
 }
 
-export const endEvent: nodeDefinition = {
+export const EndEvent: nodeDefinition = {
   type: "bpmn:endEvent",
   icon: (config = {}) => {
     return (

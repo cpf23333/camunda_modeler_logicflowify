@@ -3,7 +3,7 @@ import { Logicflow } from "../class";
 import { AiOutlineDelete } from "solid-icons/ai";
 import { JSX } from "solid-js/jsx-runtime";
 import style from "./contextPad.module.scss";
-import { endEvent } from "../nodes/event/endEvent";
+import { EndEvent } from "../nodes/event/endEvent";
 import { nodeDefinition } from "../types";
 interface eventData {
   id: string;
@@ -63,9 +63,9 @@ let deleteConfig: contextPadConfig = () => {
 };
 let nodeConfgs: contextPadAddNodeConfig[] = [
   {
-    icon: endEvent.icon,
-    name: endEvent.name,
-    type: endEvent.topType || endEvent.type,
+    icon: EndEvent.icon,
+    name: EndEvent.name,
+    type: EndEvent.topType || EndEvent.type,
     properties: {},
   },
 ];
@@ -191,7 +191,7 @@ export class ContextPad {
     let items: ReturnType<contextPadConfig>[] = [];
     let target = this.lf.getModelById(data.id);
     if (target.BaseType === "node") {
-      if (target.type !== endEvent.type) {
+      if (target.type !== EndEvent.type) {
         items.push(...this.nodeConfigs.map((conf) => conf(data, this.lf)));
       }
     }

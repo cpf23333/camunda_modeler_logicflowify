@@ -46,7 +46,7 @@ class StartEventModel extends CircleNodeModel {
 class StartEventView extends CircleNode {
   static extendKey = "StartEventNode";
 }
-export let startEvent: nodeDefinition = {
+export let StartEvent: nodeDefinition = {
   name: () => "开始节点",
   icon: (config = {}) => (
     <CustomIcon

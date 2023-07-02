@@ -1,10 +1,13 @@
 import { nodeDefinition } from "../types";
-import { sequenceFlow } from "./edges/sequenceFlow";
-import { endEvent } from "./event/endEvent";
-import { startEvent } from "./event/startEvent";
 
-export let allNodes: Record<string, nodeDefinition> = {
-  [startEvent.type]: startEvent,
-  [endEvent.type]: endEvent,
-  [sequenceFlow.type]: sequenceFlow,
-};
+export let allNodes: Record<string, nodeDefinition> = {};
+let modules = import.meta.glob("./**/*.tsx", { eager: true });
+Object.keys(modules).forEach((path: string) => {
+  let resource = modules[path] as Record<string, nodeDefinition>;
+  for (const key in resource) {
+    if (Object.prototype.hasOwnProperty.call(resource, key)) {
+      const exportItem = resource[key];
+      allNodes[exportItem.type] = exportItem;
+    }
+  }
+});
