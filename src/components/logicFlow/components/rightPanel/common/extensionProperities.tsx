@@ -1,9 +1,9 @@
-import { For, useContext } from "solid-js";
-import { Collapse } from "../../collapse";
-import { LogicFlowContext } from "@/components/logicFlow";
 import { Form, FormItem } from "@/components/Form";
+import { LogicFlowContext } from "@/components/logicFlow";
+import { For, useContext } from "solid-js";
 import { produce } from "solid-js/store";
 import { Item } from "../../Item";
+import { Collapse } from "../../collapse";
 
 export let ExtensionProperties = () => {
   let { providerData } = useContext(LogicFlowContext);
@@ -14,7 +14,6 @@ export let ExtensionProperties = () => {
     return (
       <Collapse
         title="拓展属性"
-        lf={providerData.lf}
         id="extensionProperties"
         onAdd={() => {
           setState(

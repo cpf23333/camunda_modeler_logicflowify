@@ -1,7 +1,7 @@
 import { Definition, LogicFlow as oldLogicFlow } from "@logicflow/core";
 import { createStore } from "solid-js/store";
-import { getBpmnId } from "../utils";
 import { allNodes } from "../nodes";
+import { getBpmnId } from "../utils";
 export type GeneralModel<T = any> = T & {
   /**节点或线的id */
   id: string;
@@ -17,9 +17,13 @@ type extensionElement = {
   value: string;
 };
 export interface Forms<
+  /**基础表单，面板用的数据对象 */
   baseModelCustomData = {},
+  /**控件折叠数据对象 */
   collapseCustomData = {},
+  /**基本数据对象，名称id什么的 */
   generalCustomData = GeneralModel<customObj>,
+  /**拓展属性存储 */
   extensionElementsData = Array<extensionElement>,
 > {
   /**常规情况下都使用这个存储rightPanel的表单数据 */

@@ -1,7 +1,7 @@
-import { Component, JSX, Show, createUniqueId } from "solid-js";
-import { Logicflow } from "../../class";
-import { BaseModel } from "../../types";
 import { AiOutlineDown, AiOutlinePlus, AiOutlineRight } from "solid-icons/ai";
+import { Component, Show, createUniqueId, useContext } from "solid-js";
+import { LogicFlowContext } from "../..";
+import { BaseModel } from "../../types";
 import style from "./style.module.scss";
 interface CollapseProp {
   /**标题 */
@@ -9,7 +9,6 @@ interface CollapseProp {
   children?: any;
   /**本面板在本节点内的的id */
   id: string;
-  lf: Logicflow;
   /**当前选中的节点或线，不传入的话视为在编辑全局属性 */
   model?: BaseModel;
   /**是否默认折叠，默认为true */
@@ -18,12 +17,13 @@ interface CollapseProp {
   onAdd?: () => void;
 }
 export let Collapse: Component<CollapseProp> = (props) => {
+  let lf = useContext(LogicFlowContext).providerData.lf;
   let defaultCollapse = props.defaultCollapse;
   if (typeof defaultCollapse !== "boolean") {
     defaultCollapse = true;
   }
-  let [state, setState] = props.lf.getForm<{}, {}>(
-    props.model ? props.model.id : props.lf.processId,
+  let [state, setState] = lf.getForm<{}, {}>(
+    props.model ? props.model.id : lf.processId,
   );
   let id = props.id || createUniqueId();
   if (state.collapseData[id] == undefined) {

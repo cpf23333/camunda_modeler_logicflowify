@@ -1,14 +1,16 @@
-import { JSX } from "solid-js/jsx-runtime";
-import { nodeDefinition } from "../../types";
-import { h } from "@logicflow/core";
 import {
   GraphModel,
   NodeConfig,
   RectNode,
   RectNodeModel,
+  h,
 } from "@logicflow/core";
-import { getBpmnId } from "../../utils";
 import { CustomIcon } from "solid-icons";
+import { JSX } from "solid-js/jsx-runtime";
+import { Collapse } from "../../components/collapse";
+import { EqualInput } from "../../components/equalInput";
+import { nodeDefinition } from "../../types";
+import { getBpmnId } from "../../utils";
 class TaskModel extends RectNodeModel {
   static extendKey = "TaskModel";
   constructor(data: NodeConfig, graphModel: GraphModel) {
@@ -61,4 +63,21 @@ export let TaskEvent: nodeDefinition = {
   type: "bpmn:task",
   model: TaskModel,
   view: TaskView,
+  modelRender(params) {
+    let [form, setForm] = params.lf.getForm<{
+      assignee: string;
+    }>(params.currentModel.id);
+    return [
+      <Collapse
+        title="分配"
+        id="assignement">
+        <EqualInput
+          label="办理人"
+          model={[
+            () => form.baseModel.assignee,
+            (val) => setForm("baseModel", "assignee", val),
+          ]}></EqualInput>
+      </Collapse>,
+    ];
+  },
 };

@@ -4,11 +4,10 @@ import {
   GraphModel,
   NodeConfig,
 } from "@logicflow/core";
+import { CustomIcon } from "solid-icons";
+import { createStore } from "solid-js/store";
 import { nodeDefinition } from "../../types";
 import { getBpmnId } from "../../utils";
-import startEventSvg from "./startEvent.svg?raw";
-import { createStore } from "solid-js/store";
-import { CustomIcon } from "solid-icons";
 class StartEventModel extends CircleNodeModel {
   static extendKey = "StartEventModel";
   constructor(data: NodeConfig, graphModel: GraphModel) {

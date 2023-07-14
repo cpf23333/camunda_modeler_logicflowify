@@ -1,8 +1,8 @@
-import { Component } from "solid-js";
-import { Collapse } from "../../collapse";
+import { FormItem } from "@/components/Form";
 import { Logicflow } from "@/components/logicFlow/class";
 import { BaseModel } from "@/components/logicFlow/types";
-import { FormItem } from "@/components/Form";
+import { Component } from "solid-js";
+import { Collapse } from "../../collapse";
 interface DocumentationProp {
   lf: Logicflow;
   currentNodeOrEdge: BaseModel;
@@ -13,7 +13,6 @@ export let Documentation: Component<DocumentationProp> = (props) => {
   );
   return (
     <Collapse
-      lf={props.lf}
       title="文档"
       id="documatation">
       <FormItem label="节点文档">

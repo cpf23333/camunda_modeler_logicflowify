@@ -1,8 +1,8 @@
+import { FormItem } from "@/components/Form";
+import { Logicflow } from "@/components/logicFlow/class";
+import { BaseEdgeModel, BaseNodeModel } from "@logicflow/core";
 import { Component, createEffect } from "solid-js";
 import { Collapse } from "../../collapse";
-import { Logicflow } from "@/components/logicFlow/class";
-import { FormItem } from "@/components/Form";
-import { BaseEdgeModel, BaseNodeModel } from "@logicflow/core";
 
 interface GeneralProp {
   lf: Logicflow;
@@ -40,7 +40,6 @@ export let General: Component<GeneralProp> = (props) => {
   }
   return (
     <Collapse
-      lf={props.lf}
       title="General"
       model={props.model}
       id="General">

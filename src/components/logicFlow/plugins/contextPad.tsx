@@ -1,10 +1,10 @@
+import { NodeConfig } from "@logicflow/core";
+import { AiOutlineDelete } from "solid-icons/ai";
 import { For, render } from "solid-js/web";
 import { Logicflow } from "../class";
-import { AiOutlineDelete } from "solid-icons/ai";
-import { JSX } from "solid-js/jsx-runtime";
-import style from "./contextPad.module.scss";
 import { EndEvent } from "../nodes/event/endEvent";
 import { nodeDefinition } from "../types";
+import style from "./contextPad.module.scss";
 interface eventData {
   id: string;
   properties: Record<string, any>;
@@ -127,10 +127,13 @@ export class ContextPad {
         callback: (data) => {
           this.addNode({
             sourceId: data.id,
-            properties: conf.properties || {},
-            type: conf.type,
-            x: data.x,
-            y: data.y,
+            node: {
+              properties: conf.properties || {},
+              type: conf.type,
+              x: data.x,
+              y: data.y,
+              text: conf.name(),
+            },
           });
         },
       };
@@ -230,16 +233,20 @@ export class ContextPad {
     }, this.__menuDOM);
     this.showMenu(data);
   }
-
-  addNode(
-    node: { sourceId: any; x: any; y: any; properties: any; type: any },
-    y?: number,
-  ) {
+  addNode({
+    node,
+    y,
+    sourceId,
+  }: {
+    node: NodeConfig;
+    y?: number;
+    sourceId: string;
+  }) {
     const isDeep = y !== undefined;
     if (y === undefined) {
       y = node.y;
     }
-    const nodeModel = this.lf.getNodeModelById(node.sourceId);
+    const nodeModel = this.lf.getNodeModelById(sourceId);
     const leftTopX = node.x - nodeModel.width + NEXT_X_DISTANCE;
     const leftTopY = y! - node.y / 2 - 20;
     const rightBottomX = node.x + nodeModel.width + NEXT_X_DISTANCE;
@@ -250,7 +257,7 @@ export class ContextPad {
     );
     if (exsitElements.length) {
       y = y! + NEXT_Y_DISTANCE;
-      this.addNode(node, y);
+      this.addNode({ node, sourceId, y });
       return;
     }
     const newNode = this.lf.addNode({
@@ -258,6 +265,7 @@ export class ContextPad {
       x: node.x + 200,
       y: y!,
       properties: node.properties,
+      text: node.text,
     });
     let startPoint;
     let endPoint;
@@ -272,7 +280,7 @@ export class ContextPad {
       };
     }
     this.lf.addEdge({
-      sourceNodeId: node.sourceId,
+      sourceNodeId: sourceId,
       targetNodeId: newNode.id,
       startPoint,
       endPoint,

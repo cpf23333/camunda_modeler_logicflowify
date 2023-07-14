@@ -5,8 +5,8 @@ import {
   BaseNodeModel,
 } from "@logicflow/core";
 import { JSX } from "solid-js/jsx-runtime";
-import { Forms, Logicflow } from "../class";
 import { createStore } from "solid-js/store";
+import { Forms, Logicflow } from "../class";
 type initParams = {
   lf: Logicflow;
   model: BaseNodeModel | BaseEdgeModel;

@@ -1,3 +1,5 @@
+import { FormItem } from "@/components/Form";
+import { TextArea } from "@/components/Form/TextArea";
 import {
   BaseNodeModel,
   EdgeConfig,
@@ -5,13 +7,11 @@ import {
   PolylineEdge,
   PolylineEdgeModel,
 } from "@logicflow/core";
+import { CustomIcon } from "solid-icons";
+import { Collapse } from "../../components/collapse/index";
 import { nodeDefinition } from "../../types";
 import { getBpmnId } from "../../utils";
-import { Collapse } from "../../components/collapse/index";
-import { FormItem } from "@/components/Form";
-import { TextArea } from "@/components/Form/TextArea";
 import { StartEvent } from "../event/startEvent";
-import { CustomIcon } from "solid-icons";
 class SequenceFlowModel extends PolylineEdgeModel {
   static extendKey = "SequenceFlowModel";
   constructor(data: EdgeConfig, graphModel: GraphModel) {
@@ -53,8 +53,7 @@ export let sequenceFlow: nodeDefinition = {
     return [
       <Collapse
         title="条件"
-        id="condition"
-        lf={params.lf}>
+        id="condition">
         <FormItem label="条件表达式">
           <TextArea
             value={state.baseModel.expression || ""}
