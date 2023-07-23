@@ -18,14 +18,31 @@ type checkCurrentOrInitParams = {
   json: Record<string, any>;
   lf: Logicflow;
 };
-export type renderParams = {
+export type renderParams<
+  BaseModelData = any,
+  collapseData = any,
+  generalData = any,
+  extensionElementsData = any,
+> = {
   /**当前选中的节点或线 */
   currentModel: BaseEdgeModel | BaseNodeModel;
+  /**logicFlow实例 */
   lf: Logicflow;
+  /**该节点的表单数据，包含get和set */
+  form: ReturnType<
+    typeof createStore<
+      Forms<BaseModelData, collapseData, generalData, extensionElementsData>
+    >
+  >;
 };
 
 /**bpmn节点定义 */
-export interface nodeDefinition {
+export interface nodeDefinition<
+  BaseModelData = any,
+  collapseData = any,
+  generalData = any,
+  extensionElementsData = any,
+> {
   /**用户可以看到的节点类型名称 */
   name: () => string;
   /**svg图标
@@ -58,7 +75,9 @@ export interface nodeDefinition {
    */
   initModel?: (
     params: initParams,
-  ) => ReturnType<typeof createStore<Forms<any, any, any, any>>>;
+  ) => Partial<
+    Forms<BaseModelData, collapseData, generalData, extensionElementsData>
+  >;
   modelRenderConfig?: {
     /**是否有通用块(编辑名称和id) 默认为true */
     general: boolean;
@@ -68,11 +87,16 @@ export interface nodeDefinition {
     extensionProperties: boolean;
   };
   /**右侧属性面板的渲染函数 */
-  modelRender?: (params: renderParams) => JSX.Element;
+  modelRender?: (params: renderParams<BaseModelData>) => JSX.Element;
   /**传入json数据，返回是否为当前节点 */
   isCurrentNode?: (params: checkCurrentOrInitParams) => boolean | void;
   /**若isCurrentNode返回值为true，则会调用这个函数 */
   adapterIn?: (params: checkCurrentOrInitParams) => Record<string, any> | void;
-  /**将该节点实例导出为json */
-  adapterOut?: (params: renderParams) => Record<string, any>;
+  /**将该节点实例的自定义数据导出为json */
+  adapterOut?: (params: renderParams<BaseModelData>) => {
+    /**标签上的属性和子标签 */
+    tag?: Record<string, any>;
+    /**标签对应形状标签上的属性 */
+    plane?: Record<string, any>;
+  };
 }

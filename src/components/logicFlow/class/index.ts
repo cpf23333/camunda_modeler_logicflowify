@@ -9,7 +9,7 @@ export type GeneralModel<T = any> = T & {
   name: string;
 };
 type customObj<T = {}> = T & {
-  /**自定义字段 */
+  /**自定义字段，可以自由使用 */
   [x: string]: any;
 };
 type extensionElement = {
@@ -36,6 +36,7 @@ export interface Forms<
   extensionElements: extensionElementsData;
 }
 type NodeOrEdgeId = string;
+
 export class Logicflow extends oldLogicFlow {
   processId: string;
   constructor(options: Definition) {
@@ -55,7 +56,21 @@ export class Logicflow extends oldLogicFlow {
     if (id !== this.processId) {
       let targetType = allNodes[model.type];
       if (targetType && targetType.initModel) {
-        this.forms[id] = targetType.initModel({ lf: this, model });
+        let defaultForm: Forms = {
+          baseModel: {},
+          collapseData: {},
+          generalData: {
+            id: id,
+            name: model.text.value,
+          },
+          extensionElements: [],
+        };
+        let data = Object.assign(
+          {},
+          defaultForm,
+          targetType.initModel({ lf: this, model }),
+        );
+        this.forms[id] = createStore(data);
         return;
       }
     }

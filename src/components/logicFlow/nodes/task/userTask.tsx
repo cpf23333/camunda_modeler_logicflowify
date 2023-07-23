@@ -1,5 +1,3 @@
-import { JSX } from "solid-js/jsx-runtime";
-import { nodeDefinition } from "../../types";
 import {
   GraphModel,
   NodeConfig,
@@ -7,8 +5,12 @@ import {
   RectNodeModel,
   h,
 } from "@logicflow/core";
-import { getBpmnId } from "../../utils";
 import { CustomIcon } from "solid-icons";
+import { JSX } from "solid-js/jsx-runtime";
+import { Collapse } from "../../components/collapse";
+import { EqualInput } from "../../components/equalInput";
+import { nodeDefinition } from "../../types";
+import { getBpmnId } from "../../utils";
 class UserTaskModel extends RectNodeModel {
   static extendKey = "UserTaskModel";
   constructor(data: NodeConfig, graphModel: GraphModel) {
@@ -73,7 +75,10 @@ class UserTaskView extends RectNode {
     ]);
   }
 }
-export let UserTask: nodeDefinition = {
+export let UserTask: nodeDefinition<{
+  /**指定人 */
+  assignee: string;
+}> = {
   name: function (): string {
     return "用户任务";
   },
@@ -95,4 +100,66 @@ export let UserTask: nodeDefinition = {
   type: "bpmn:userTask",
   model: UserTaskModel,
   view: UserTaskView,
+  initModel(params) {
+    return {};
+  },
+  modelRender(params) {
+    let [model, setModel] = params.form;
+    return [
+      <Collapse
+        title="分配"
+        id="assignment">
+        <EqualInput
+          label="指定人"
+          model={[
+            () => model.baseModel.assignee || "",
+            (val) => setModel("baseModel", "assignee", val),
+          ]}></EqualInput>
+        <EqualInput
+          label="候选用户组"
+          model={[
+            () => model.baseModel.group,
+            (val) => {
+              setModel("baseModel", "group", val);
+            },
+          ]}></EqualInput>
+        <EqualInput
+          label="候选用户"
+          model={[
+            () => model.baseModel.user,
+            (val) => {
+              setModel("baseModel", "user", val);
+            },
+          ]}></EqualInput>
+        <EqualInput
+          label="到期日期"
+          model={[
+            () => model.baseModel.dueDate,
+            (val) => {
+              setModel("baseModel", "dueDate", val);
+            },
+          ]}></EqualInput>
+        <EqualInput
+          label="跟催日期"
+          model={[
+            () => model.baseModel.followUpDate,
+            (val) => {
+              setModel("baseModel", "followUpDate", val);
+            },
+          ]}></EqualInput>
+      </Collapse>,
+    ];
+  },
+  adapterOut(params) {
+    let baseModel = params.form[0].baseModel;
+    let tag: Record<string, any> = {};
+    let plane: Record<string, any> = {};
+    if (baseModel.assignee) {
+      tag["-assignee"] = baseModel.assignee;
+    }
+    return {
+      tag: tag,
+      plane,
+    };
+  },
 };

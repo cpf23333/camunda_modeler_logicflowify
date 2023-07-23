@@ -1,14 +1,13 @@
-import { Component, JSX, JSXElement, createSignal, useContext } from "solid-js";
-import style from "./style.module.scss";
-import { nodeDefinition } from "../../types";
-import { Logicflow } from "../../class";
-import { BaseEdgeModel, BaseNodeModel } from "@logicflow/core";
-import { allNodes } from "../../nodes";
 import { Form } from "@/components/Form";
-import { General } from "./common/general";
-import { Documentation } from "./common/documentation";
+import { Component, JSXElement, createSignal, useContext } from "solid-js";
 import { LogicFlowContext } from "../..";
+import { Logicflow } from "../../class";
+import { allNodes } from "../../nodes";
+import { nodeDefinition } from "../../types";
+import { Documentation } from "./common/documentation";
 import { ExtensionProperties } from "./common/extensionProperities";
+import { General } from "./common/general";
+import style from "./style.module.scss";
 
 interface processFormProp {
   lf: Logicflow;
@@ -57,10 +56,12 @@ export let RightPanel: Component = () => {
           );
         }
         if (target.modelRender) {
+          let form = providerData.lf.getForm(providerData.currentModel.id);
           content.push(
             target.modelRender({
               lf: providerData.lf,
               currentModel: providerData.currentModel,
+              form,
             }),
           );
         }

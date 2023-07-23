@@ -19,7 +19,12 @@ export let Form: Component<FromProp> = (props) => {
     labelPosition: props.labelPosition || "left",
   };
   return (
-    <form classList={{ [style.form]: true, ...(props.classList || {}) }}>
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+      classList={{ [style.form]: true, ...(props.classList || {}) }}>
       <FormContext.Provider value={context}>
         {props.children}
       </FormContext.Provider>

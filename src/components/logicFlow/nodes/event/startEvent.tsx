@@ -5,7 +5,6 @@ import {
   NodeConfig,
 } from "@logicflow/core";
 import { CustomIcon } from "solid-icons";
-import { createStore } from "solid-js/store";
 import { nodeDefinition } from "../../types";
 import { getBpmnId } from "../../utils";
 class StartEventModel extends CircleNodeModel {
@@ -66,11 +65,11 @@ export let StartEvent: nodeDefinition = {
   view: StartEventView,
   initModel(params) {
     console.log("自定义的初始化");
-    return createStore({
+    return {
       baseModel: {},
       collapseData: {},
       extensionElements: [],
       generalData: { id: params.model.id, name: params.model.text.value },
-    });
+    };
   },
 };

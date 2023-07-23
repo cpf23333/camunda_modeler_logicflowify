@@ -1,0 +1,26 @@
+.item {
+  &.active {
+    .label {
+      :global(svg *) {
+        color: hsl(205, 100%, 35%);
+      }
+    }
+  }
+  .label {
+    display: flex;
+    align-items: center;
+  }
+  .content {
+    display: flex;
+    .equal {
+      background-color: #e3e4e8;
+      padding: 2px 6px;
+      height: inherit;
+    }
+    textarea {
+      width: 100%;
+      resize: vertical;
+      min-height: calc(1rem + 4px);
+    }
+  }
+}
