@@ -13,23 +13,23 @@
   "devDependencies": {
     "@types/node": "^20.2.5",
     "@types/uuid": "^9.0.1",
-    "@typescript-eslint/eslint-plugin": "^5.59.8",
+    "@typescript-eslint/eslint-plugin": "6.2.0",
     "eslint": "^8.42.0",
     "eslint-plugin-solid": "^0.12.1",
-    "prettier": "^2.8.8",
+    "prettier": "^3.0.0",
     "sass": "^1.62.1",
-    "solid-devtools": "^0.26.0",
+    "solid-devtools": "0.27.4",
     "typescript": "^5.0.4",
     "typescript-plugin-css-modules": "^5.0.1",
     "vite": "^4.1.1",
     "vite-plugin-solid": "^2.5.0"
   },
   "dependencies": {
-    "@logicflow/core": "^1.2.8",
-    "@logicflow/extension": "^1.2.8",
+    "@logicflow/core": "1.2.10",
+    "@logicflow/extension": "1.2.10",
     "rollup-plugin-visualizer": "^5.9.0",
     "solid-icons": "^1.0.8",
-    "solid-js": "^1.7.6",
+    "solid-js": "^1.7.8",
     "uuid": "^9.0.0",
     "vite-plugin-compression": "^0.5.1"
   }
