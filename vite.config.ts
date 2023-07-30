@@ -1,9 +1,9 @@
-import { Plugin, defineConfig } from "vite";
-import solidPlugin from "vite-plugin-solid";
-import devtools from "solid-devtools/vite";
 import { resolve } from "path";
 import { visualizer } from "rollup-plugin-visualizer";
+import devtools from "solid-devtools/vite";
+import { Plugin, defineConfig } from "vite";
 import compress from "vite-plugin-compression";
+import solidPlugin from "vite-plugin-solid";
 function _resolve(dir: string) {
   return resolve(__dirname, dir);
 }
@@ -31,7 +31,7 @@ export default defineConfig({
     },
   },
   server: {
-    port: 3000,
+    port: 31000,
   },
   build: {
     target: "esnext",
