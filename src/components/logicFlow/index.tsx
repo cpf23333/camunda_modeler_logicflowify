@@ -1,3 +1,5 @@
+import "@logicflow/core/dist/style/index.css";
+import "@logicflow/extension/lib/style/index.css";
 import {
   Component,
   createContext,
@@ -5,18 +7,17 @@ import {
   mergeProps,
   onMount,
 } from "solid-js";
+import { createStore } from "solid-js/store";
 import { Logicflow } from "./class";
-import { allNodes } from "./nodes";
-import style from "./index.module.scss";
 import { LeftDndPanel } from "./components/dndPanel";
 import { RightPanel } from "./components/rightPanel";
+import style from "./index.module.scss";
+import { allNodes } from "./nodes";
 import { sequenceFlow } from "./nodes/edges/sequenceFlow";
-import { BaseModel } from "./types";
-import { createStore } from "solid-js/store";
+import { Adapter } from "./plugins/Adapter";
 import { ContextPad } from "./plugins/contextPad";
-import "@logicflow/core/dist/style/index.css";
-import "@logicflow/extension/lib/style/index.css";
 import "./style/index.scss";
+import { BaseModel } from "./types";
 let contextStore = createStore<{ lf: Logicflow; currentModel?: BaseModel }>({
   lf: undefined as unknown as Logicflow,
   currentModel: undefined,
@@ -53,8 +54,13 @@ export let Flow: Component<Props> = (props) => {
         type: "dot",
         size: 20,
       },
-      plugins: [ContextPad],
+      plugins: [ContextPad, Adapter],
     });
+    if (import.meta.env.DEV) {
+      let w = window as any;
+      w.lf = newLf;
+    }
+
     setProviderData("lf", newLf);
     setShouldShowRightPanel(true);
     newLf.batchRegister(Object.values(allNodes));
@@ -64,8 +70,6 @@ export let Flow: Component<Props> = (props) => {
     if (props.state === "edit") {
     }
     newLf.on("node:click,edge:click", (data) => {
-      console.log("点击");
-
       let nodeOrEdge = newLf.getModelById(data.data.id);
       setProviderData("currentModel", nodeOrEdge);
     });

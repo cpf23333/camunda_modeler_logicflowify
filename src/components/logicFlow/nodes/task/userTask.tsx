@@ -151,15 +151,19 @@ export let UserTask: nodeDefinition<{
     ];
   },
   adapterOut(params) {
-    let baseModel = params.form[0].baseModel;
+    let baseModel = params.form.baseModel;
     let tag: Record<string, any> = {};
-    let plane: Record<string, any> = {};
     if (baseModel.assignee) {
       tag["-assignee"] = baseModel.assignee;
     }
     return {
       tag: tag,
-      plane,
+      shape: {
+        "-bioc:stroke": "#0d4372",
+        "-bioc:fill": "#bbdefb",
+        "-color:background-color": "#bbdefb",
+        "-color:border-color": "#0d4372",
+      },
     };
   },
 };

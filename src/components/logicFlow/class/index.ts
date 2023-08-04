@@ -7,6 +7,10 @@ export type GeneralModel<T = any> = T & {
   id: string;
   /**名称 */
   name: string;
+  /**文档 */
+  document: string;
+  /**自定义字段，可以自由使用 */
+  [x: string]: any;
 };
 type customObj<T = {}> = T & {
   /**自定义字段，可以自由使用 */
@@ -22,7 +26,7 @@ export interface Forms<
   /**控件折叠数据对象 */
   collapseCustomData = {},
   /**基本数据对象，名称id什么的 */
-  generalCustomData = GeneralModel<customObj>,
+  generalCustomData = {},
   /**拓展属性存储 */
   extensionElementsData = Array<extensionElement>,
 > {
@@ -31,9 +35,28 @@ export interface Forms<
   /**折叠面板状态存储区 */
   collapseData: customObj<collapseCustomData>;
   /**基本信息 */
-  generalData: GeneralModel<generalCustomData> & customObj;
+  generalData: GeneralModel<generalCustomData>;
   /**拓展属性 */
   extensionElements: extensionElementsData;
+}
+export interface ReadOnlyForms<
+  /**基础表单，面板用的数据对象 */
+  baseModelCustomData = {},
+  /**控件折叠数据对象 */
+  collapseCustomData = {},
+  /**基本数据对象，名称id什么的 */
+  generalCustomData = {},
+  /**拓展属性存储 */
+  extensionElementsData = Array<extensionElement>,
+> {
+  /**常规情况下都使用这个存储rightPanel的表单数据 */
+  baseModel: Readonly<customObj<baseModelCustomData>>;
+  /**折叠面板状态存储区 */
+  collapseData: Readonly<customObj<collapseCustomData>>;
+  /**基本信息 */
+  generalData: Readonly<GeneralModel<generalCustomData>>;
+  /**拓展属性 */
+  extensionElements: ReadonlyArray<extensionElementsData>;
 }
 type NodeOrEdgeId = string;
 
@@ -47,6 +70,7 @@ export class Logicflow extends oldLogicFlow {
         name: "",
         id: `Process_${getBpmnId()}`,
         isExecutable: true,
+        document: "",
       },
     });
   }
@@ -62,6 +86,7 @@ export class Logicflow extends oldLogicFlow {
           generalData: {
             id: id,
             name: model.text.value,
+            document: "",
           },
           extensionElements: [],
         };

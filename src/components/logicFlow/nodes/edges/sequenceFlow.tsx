@@ -25,7 +25,15 @@ class SequenceFlowModel extends PolylineEdgeModel {
 class SequenceFlowView extends PolylineEdge {
   static extendKey = "SequenceFlowEdge";
 }
-export let sequenceFlow: nodeDefinition = {
+export let sequenceFlow: nodeDefinition<
+  {
+    /**表达式 */
+    expression: string;
+  },
+  { coll: string },
+  {},
+  {}
+> = {
   name: () => "连线",
   icon: (config = {}) => {
     return (
@@ -47,9 +55,8 @@ export let sequenceFlow: nodeDefinition = {
     if (sourceNode.type === StartEvent.type) {
       return;
     }
-    let [state, setState] = params.lf.getForm<{
-      expression: string;
-    }>(params.currentModel.id);
+
+    let [state, setState] = params.form;
     return [
       <Collapse
         title="条件"
@@ -65,6 +72,7 @@ export let sequenceFlow: nodeDefinition = {
     ];
   },
   adapterOut(params) {
+    params.form.baseModel.expression;
     return {};
   },
 };
