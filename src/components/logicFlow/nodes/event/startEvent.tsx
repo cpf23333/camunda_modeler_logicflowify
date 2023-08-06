@@ -64,7 +64,6 @@ export let StartEvent: nodeDefinition = {
   model: StartEventModel,
   view: StartEventView,
   initModel(params) {
-    console.log("自定义的初始化");
     return {
       baseModel: {},
       collapseData: {},

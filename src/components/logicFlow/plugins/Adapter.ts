@@ -1,4 +1,4 @@
-import { GraphConfigData, NodeConfig } from "@logicflow/core";
+import { GraphConfigData } from "@logicflow/core";
 import { lfJson2Xml, lfXml2Json } from "@logicflow/extension";
 import { isPlainObject, merge } from "lodash-es";
 import { Logicflow } from "../class/index";
@@ -52,7 +52,7 @@ let transNodeAndEdge = ({
   data: GraphConfigData;
   lf: Logicflow;
 }) => {
-  let nodeMap = new Map<string, NodeConfig>();
+  let nodeMap = new Map<string, processDataItem>();
   let bpmnDi: {
     "bpmndi:BPMNShape": any[];
     "bpmndi:BPMNEdge": any[];
@@ -65,14 +65,13 @@ let transNodeAndEdge = ({
   for (let i = 0; i < data.nodes.length; i++) {
     const node = data.nodes[i];
     if (node.id) {
-      nodeMap.set(node.id, node);
       let targetNodeDefinition = allNodes[node.type];
       let type = targetNodeDefinition.topType || node.type;
       let targetModel = lf.getModelById(node.id);
-      /**最终的数据xml */
-      let finalTagData: processDataItem = { "-id": node.id };
-      /**最终的平面xml */
-      let finalshapeData: Record<string, any> = {
+      /**节点的数据xml */
+      let tagData: processDataItem = { "-id": node.id };
+      /**节点的平面xml */
+      let tagShapeData: Record<string, any> = {
         "-id": `${node.id}_di`,
         "-bpmnElement": node.id,
         "dc:Bounds": {
@@ -82,10 +81,10 @@ let transNodeAndEdge = ({
           "-height": targetModel.height,
         },
       };
-      let forms = lf.getForm(node.id)[0];
+      let form = lf.getForm(node.id)[0];
 
       if (typeof node.text === "object") {
-        finalshapeData["bpmndi:BPMNLabel"] = {
+        tagShapeData["bpmndi:BPMNLabel"] = {
           "dc:Bounds": {
             "-x": node.text.x - (node.text.value.length * 10) / 2,
             "-y": node.text.y - 7,
@@ -93,7 +92,7 @@ let transNodeAndEdge = ({
             "-height": 14,
           },
         };
-        finalTagData["-name"] = node.text.value;
+        tagData["-name"] = node.text.value;
       }
       if (targetNodeDefinition && targetNodeDefinition.adapterOut) {
         let { tag, shape } = targetNodeDefinition.adapterOut({
@@ -101,46 +100,145 @@ let transNodeAndEdge = ({
           lf: lf,
           form: Object(lf.getForm(node.id)[0]),
         });
-        merge(finalTagData, tag);
-        merge(finalshapeData, shape);
+        merge(tagData, tag);
+        merge(tagShapeData, shape);
       } else {
         let props = targetModel.getProperties();
-        merge(finalTagData, props);
+        merge(tagData, props);
       }
-      if (forms.generalData.document) {
-        finalTagData["bpmn:documentation"] = forms.generalData.document;
+      if (form.generalData.document) {
+        tagData["bpmn:documentation"] = form.generalData.document;
       }
-      let extensionElements = forms.extensionElements.map((e) => {
+      let extensionElements = form.extensionElements.map((e) => {
         return {
           "-name": e.name,
           "-value": e.value,
         };
       });
       objectInit(
-        finalTagData,
+        tagData,
         ["bpmn:extensionElements", "zeebe:properties", "zeebe:property"],
         [],
       );
       let props: typeof extensionElements =
-        finalTagData["bpmn:extensionElements"]["zeebe:properties"][
-          "zeebe:property"
-        ];
+        tagData["bpmn:extensionElements"]["zeebe:properties"]["zeebe:property"];
       props.unshift(...extensionElements);
-      bpmnDi["bpmndi:BPMNShape"].push(finalshapeData);
+      bpmnDi["bpmndi:BPMNShape"].push(tagShapeData);
+      nodeMap.set(node.id, tagData);
       if (processData[type]) {
         if (processData[type] instanceof Array) {
-          processData[type].push(finalTagData);
+          processData[type].push(tagData);
         } else {
           let first = processData[type] as processDataItem;
-          processData[type] = [first, finalTagData];
+          processData[type] = [first, tagData];
         }
       } else {
-        processData[type] = finalTagData;
+        processData[type] = tagData;
       }
     } else {
       console.error(`警告：`, node, "没有id");
     }
   }
+  for (let i = 0; i < data.edges.length; i++) {
+    const edge = data.edges[i];
+    const targetNode = nodeMap.get(edge.targetNodeId);
+    if (targetNode && edge.type && edge.id) {
+      let targetEdgeDefinition = allNodes[edge.type];
+
+      if (!targetNode["bpmn:incoming"]) {
+        targetNode["bpmn:incoming"] = edge.id;
+      } else if (Array.isArray(targetNode["bpmn:incoming"])) {
+        targetNode["bpmn:incoming"].push(edge.id);
+      } else {
+        targetNode["bpmn:incoming"] = [targetNode["bpmn:incoming"], edge.id];
+      }
+      const pointsList = (edge.pointsList || []).map(({ x, y }) => ({
+        "-x": x,
+        "-y": y,
+      }));
+      const edgeTagData: processDataItem = {
+        "-id": edge.id,
+        "-sourceRef": edge.sourceNodeId,
+        "-targetRef": edge.targetNodeId,
+      };
+      if (typeof edge.text === "object" && edge.text?.value) {
+        edgeTagData["-name"] = edge.text?.value;
+      }
+      const edgeShapeData: Record<string, any> = {
+        "-id": `${edge.id}_di`,
+        "-bpmnElement": edge.id,
+        "di:waypoint": pointsList,
+      };
+      if (typeof edge.text === "object" && edge.text?.value) {
+        edgeShapeData["bpmndi:BPMNLabel"] = {
+          "dc:Bounds": {
+            "-x": edge.text.x - (edge.text.value.length * 10) / 2,
+            "-y": edge.text.y - 7,
+            "-width": edge.text.value.length * 10,
+            "-height": 14,
+          },
+        };
+      }
+      let form = lf.getForm(edge.id)[0];
+
+      if (targetEdgeDefinition && targetEdgeDefinition.adapterOut) {
+        let { tag, shape } = targetEdgeDefinition.adapterOut({
+          currentModel: lf.getEdgeModelById(edge.id),
+          lf,
+          form: form,
+        });
+        merge(edgeTagData, tag);
+        merge(edgeShapeData, shape);
+      }
+      if (form.generalData.document) {
+        edgeTagData["bpmn:documentation"] = form.generalData.document;
+      }
+      let extensionElements = form.extensionElements.map((e) => {
+        return {
+          "-name": e.name,
+          "-value": e.value,
+        };
+      });
+
+      objectInit(
+        edgeTagData,
+        ["bpmn:extensionElements", "zeebe:properties", "zeebe:property"],
+        [],
+      );
+      let props: typeof extensionElements =
+        edgeTagData["bpmn:extensionElements"]["zeebe:properties"][
+          "zeebe:property"
+        ];
+      props.unshift(...extensionElements);
+      if (processData[edge.type]) {
+        if (processData[edge.type] instanceof Array) {
+          processData[edge.type].push(edgeTagData);
+        } else {
+          let first = processData[edge.type] as processDataItem;
+          processData[edge.type] = [first, edgeTagData];
+        }
+      } else {
+        processData[edge.type] = edgeTagData;
+      }
+
+      bpmnDi["bpmndi:BPMNEdge"].push(edgeShapeData);
+      // 下部逻辑来自logicflow源码
+      // @see https://github.com/didi/LogicFlow/issues/325
+      // 需要保证incoming在outgoing之前
+      const sourceNode = nodeMap.get(edge.sourceNodeId);
+      if (sourceNode) {
+        if (!sourceNode["bpmn:outgoing"]) {
+          sourceNode["bpmn:outgoing"] = edge.id;
+        } else if (Array.isArray(sourceNode["bpmn:outgoing"])) {
+          sourceNode["bpmn:outgoing"].push(edge.id);
+        } else {
+          // 字符串转数组
+          sourceNode["bpmn:outgoing"] = [sourceNode["bpmn:outgoing"], edge.id];
+        }
+      }
+    }
+  }
+
   return { processData, bpmnDi };
 };
 /**
@@ -154,7 +252,6 @@ export class Adapter {
     lf.adapterOut = (data) => this.adapterOut(data);
     lf.adapterIn = (...rest) => this.adapterIn(...rest);
     this.lf = lf;
-    console.log("this", this);
   }
   adapterOut(data: GraphConfigData) {
     let transedData = transNodeAndEdge({ data, lf: this.lf });
