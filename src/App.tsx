@@ -5,6 +5,7 @@ let App: Component = () => {
   let Lf: Logicflow;
   return (
     <Flow
+      state="edit"
       lf={(lf) => {
         Lf = lf;
       }}></Flow>

@@ -65,7 +65,7 @@ let nodeConfgs: contextPadAddNodeConfig[] = [
   {
     icon: EndEvent.icon,
     name: EndEvent.name,
-    type: EndEvent.topType || EndEvent.type,
+    type: EndEvent.topTag || EndEvent.type,
     properties: {},
   },
 ];

@@ -1,6 +1,9 @@
 import { Definition, LogicFlow as oldLogicFlow } from "@logicflow/core";
+import { merge } from "lodash-es";
 import { createStore } from "solid-js/store";
+import { reactifyObject } from "solidjs-use";
 import { allNodes } from "../nodes";
+import { nodeDefinition } from "../types";
 import { getBpmnId } from "../utils";
 export type GeneralModel<T = any> = T & {
   /**节点或线的id */
@@ -20,6 +23,7 @@ type extensionElement = {
   name: string;
   value: string;
 };
+/**通用的右侧属性面板数据结构 */
 export interface Forms<
   /**基础表单，面板用的数据对象 */
   baseModelCustomData = {},
@@ -75,42 +79,76 @@ export class Logicflow extends oldLogicFlow {
     });
   }
   /**默认的初始化表单功能，如果这个就够用的话，不需要给nodeDefinition设置initModel */
-  initForm(id: NodeOrEdgeId, initData?: Partial<Forms>) {
-    let model = this.getModelById(id);
-    if (id !== this.processId) {
-      let targetType = allNodes[model.type];
-      if (targetType && targetType.initModel) {
-        let defaultForm: Forms = {
-          baseModel: {},
-          collapseData: {},
-          generalData: {
-            id: id,
-            name: model.text.value,
-            document: "",
+  initForm(
+    id: NodeOrEdgeId,
+    initData?: Partial<Forms>,
+    otherOptions?: {
+      /**默认情况下会根据id自动寻找对应的定义
+       *
+       * 但在导入时还没有在logicFlow实例上生成这个节点
+       *
+       * 也就无法根据id找到对应mldel，再找到对应的定义
+       *
+       * 这里允许手动传入定义 */
+      nodeDefinition?: nodeDefinition;
+    },
+  ) {
+    if (id === this.processId) {
+      this.forms[id] = createStore<
+        Forms<{}, {}, GeneralModel, extensionElement[]>
+      >(
+        merge(
+          {
+            baseModel: {},
+            collapseData: {},
+            generalData: {
+              id: id,
+              name: "",
+            },
+            extensionElements: [],
           },
-          extensionElements: [],
-        };
-        let data = Object.assign(
-          {},
+          initData || {},
+        ),
+      );
+    } else {
+      let targetType;
+      let model = this.getModelById(id);
+      if (otherOptions?.nodeDefinition) {
+        targetType = otherOptions.nodeDefinition;
+      } else {
+        targetType = allNodes[model.type];
+      }
+      let defaultForm: Forms = {
+        baseModel: {},
+        collapseData: {},
+        generalData: {
+          id: id,
+          name: "",
+          document: "",
+        },
+        extensionElements: [],
+        ...(initData || {}),
+      };
+      if (targetType && targetType.initModel) {
+        defaultForm = merge(
           defaultForm,
           targetType.initModel({ lf: this, model }),
         );
-        this.forms[id] = createStore(data);
+        this.forms[id] = createStore(defaultForm);
         return;
       }
+      this.forms[id] = createStore<
+        Forms<{}, {}, GeneralModel, extensionElement[]>
+      >({
+        baseModel: {},
+        collapseData: {},
+        generalData: {
+          id: id,
+        },
+        extensionElements: [],
+        ...(initData || {}),
+      });
     }
-    this.forms[id] = createStore<
-      Forms<{}, {}, GeneralModel, extensionElement[]>
-    >({
-      baseModel: {},
-      collapseData: {},
-      generalData: {
-        id: id,
-        name: model?.text?.value || "",
-      },
-      extensionElements: [],
-      ...(initData || {}),
-    });
   }
   getForm<
     baseModel = {},
@@ -137,5 +175,5 @@ export class Logicflow extends oldLogicFlow {
   private forms: Record<
     NodeOrEdgeId,
     ReturnType<typeof createStore<Forms<any, any, any, any>>>
-  > = {};
+  > = reactifyObject({});
 }

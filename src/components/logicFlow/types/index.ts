@@ -6,7 +6,7 @@ import {
 } from "@logicflow/core";
 import { JSX } from "solid-js/jsx-runtime";
 import { createStore } from "solid-js/store";
-import { Forms, Logicflow, ReadOnlyForms } from "../class";
+import { Forms, Logicflow } from "../class";
 type initParams = {
   lf: Logicflow;
   model: BaseNodeModel | BaseEdgeModel;
@@ -15,7 +15,7 @@ export type BaseModel = BaseNodeModel | BaseEdgeModel;
 export type BaseView = BaseNode | BaseEdge;
 type checkCurrentOrInitParams = {
   /**这个节点的json数据 */
-  json: Record<string, any>;
+  json: DeepReadonly<Record<string, any>>;
   lf: Logicflow;
 };
 export type renderParams<
@@ -47,12 +47,16 @@ export type adapterOutParam<
   lf: Logicflow;
   /**该节点的表单数据，包含get和set */
   /**该节点的表单数据，只有get */
-  form: ReadOnlyForms<
-    BaseModelData,
-    collapseData,
-    generalData,
-    extensionElementsData
+  form: DeepReadonly<
+    Forms<BaseModelData, collapseData, generalData, extensionElementsData>
   >;
+};
+export type adapterInParam = {
+  /**形状的json */
+  shape: Record<string, any>;
+  /**标签的json */
+  tag: Record<string, any>;
+  lf: Logicflow;
 };
 
 export interface adapterOutData {
@@ -96,7 +100,13 @@ export interface nodeDefinition<
    *
    * 或者是业务上的自定义节点，可以设置这个字段为bpmn标签名，type字段为自定义的id
    */
-  topType?: string;
+  topTag?: string;
+  /**用于区分该定义是否为线
+   *
+   * 设置为true则视为线，其余全部情况视为节点
+   * @default false
+   */
+  isEdge?: boolean;
   /**logicFlow注册节点时需要的model */
   model: typeof BaseNodeModel | typeof BaseEdgeModel;
   /**logicFlow注册节点时需要的view */
@@ -131,8 +141,11 @@ export interface nodeDefinition<
   ) => JSX.Element;
   /**传入json数据，返回是否为当前节点 */
   isCurrentNode?: (params: checkCurrentOrInitParams) => boolean | void;
-  /**若isCurrentNode返回值为true，则会调用这个函数 */
-  adapterIn?: (params: checkCurrentOrInitParams) => Record<string, any> | void;
+  /**若isCurrentNode返回值为true或对应标签名称下只有这一个节点定义，则会调用这个函数
+   *
+   * 如果返回对象，则视为节点的properties
+   */
+  adapterIn?: (params: adapterInParam) => BaseModel["properties"] | void;
   /**将该节点实例的自定义数据导出为json */
   adapterOut?: (
     params: adapterOutParam<
