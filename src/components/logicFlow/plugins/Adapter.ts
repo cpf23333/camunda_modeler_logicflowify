@@ -1,5 +1,5 @@
 import { EdgeConfig, GraphConfigData, NodeConfig } from "@logicflow/core";
-import { lfJson2Xml, toNormalJson } from "@logicflow/extension";
+import { lfJson2Xml } from "@logicflow/extension";
 import { isPlainObject, merge } from "lodash-es";
 import { Logicflow } from "../class/index";
 import { edgeTypes } from "../config";
@@ -255,21 +255,18 @@ function convertBpmn2LfData(
   const definitions = bpmnData["bpmn:definitions"];
   if (definitions) {
     const process = definitions["bpmn:process"];
+    const plane = definitions["bpmndi:BPMNDiagram"]["bpmndi:BPMNPlane"];
+    let bpmnEdges = plane["bpmndi:BPMNEdge"];
+    let shapes = plane["bpmndi:BPMNShape"];
     Object.keys(process).forEach((key) => {
       if (key.indexOf("bpmn:") === 0) {
         const value = process[key];
         if (edgeTypes.includes(key as unknown as (typeof edgeTypes)[number])) {
-          const bpmnEdges =
-            definitions["bpmndi:BPMNDiagram"]["bpmndi:BPMNPlane"][
-              "bpmndi:BPMNEdge"
-            ];
-          edges = getLfEdges({ value, bpmnEdges, key, lf });
+          edges = getLfEdges({ value, bpmnEdges, key, lf, plane, process });
         } else {
-          const shapes =
-            definitions["bpmndi:BPMNDiagram"]["bpmndi:BPMNPlane"][
-              "bpmndi:BPMNShape"
-            ];
-          nodes = nodes.concat(getLfNodes({ value, shapes, key, lf }));
+          nodes = nodes.concat(
+            getLfNodes({ value, shapes, key, lf, plane, process }),
+          );
         }
       }
     });
@@ -284,11 +281,20 @@ function getLfNodes({
   shapes,
   key,
   lf,
+  plane,
+  process,
 }: {
   value: any;
   shapes: any;
   key: string;
   lf: Logicflow;
+  /**bpmndi:BPMNPlane标签，可以通过这个读取所有节点的形状数据 */
+  plane: {
+    "bpmndi:BPMNShape": any[];
+    "bpmndi:BPMNEdge": any[];
+  };
+  /**bpmn:process标签，可以读取这个量的属性来获取所有的节点 */
+  process: Record<string, any>;
 }) {
   const nodes = [];
   if (Array.isArray(value)) {
@@ -307,6 +313,8 @@ function getLfNodes({
         type: key,
         processValue: val,
         lf,
+        plane,
+        process,
       });
       nodes.push(node);
     });
@@ -324,6 +332,8 @@ function getLfNodes({
       type: key,
       processValue: value,
       lf,
+      plane,
+      process,
     });
     nodes.push(node);
   }
@@ -333,31 +343,52 @@ let initNodeOrEdgeForm = ({
   processValue,
   lf,
   nodeDefinition,
+  shapeValue,
+  plane,
+  process,
 }: {
   processValue: Record<string, any>;
+  shapeValue: Record<string, any>;
   lf: Logicflow;
   nodeDefinition?: nodeDefinition;
+  /**bpmndi:BPMNPlane标签，可以通过这个读取所有节点的形状数据 */
+  plane: {
+    "bpmndi:BPMNShape": any[];
+    "bpmndi:BPMNEdge": any[];
+  };
+  /**bpmn:process标签，可以读取这个量的属性来获取所有的节点 */
+  process: Record<string, any>;
 }) => {
-  console.log("processValue", processValue);
+  let id = processValue["-id"];
+  let documentTxt =
+    typeof processValue["bpmn:documentation"]?.["#text"] === "string"
+      ? processValue["bpmn:documentation"]["#text"]
+      : "";
+  let finalForm = {
+    generalData: {
+      id: id,
+      name: processValue["-name"] || "",
+      document: documentTxt,
+    },
+  };
+  let inRes =
+    nodeDefinition && nodeDefinition.adapterIn
+      ? nodeDefinition.adapterIn({
+          lf,
+          shape: shapeValue,
+          tag: processValue,
+          plane,
+          process,
+        })
+      : null;
 
+  if (inRes?.form) {
+    merge(finalForm, inRes.form);
+  }
   setTimeout(() => {
-    let id = processValue["-id"];
-    let documentTxt =
-      typeof processValue["bpmn:documentation"]?.["#text"] === "string"
-        ? processValue["bpmn:documentation"]["#text"]
-        : "";
-    lf.initForm(
-      id,
-      {
-        generalData: {
-          id: id,
-          name: processValue["-name"],
-          document: documentTxt,
-        },
-      },
-      { nodeDefinition: nodeDefinition },
-    );
-  }, 50);
+    lf.initForm(id, finalForm);
+  }, 0);
+  return inRes?.properties;
 };
 const defaultAttrs = [
   "-name",
@@ -367,16 +398,25 @@ const defaultAttrs = [
   "-sourceRef",
   "-targetRef",
 ];
-function getNodeConfig({
+export function getNodeConfig({
   shapeValue,
   type,
   processValue,
   lf,
+  plane,
+  process,
 }: {
   shapeValue: any;
   type: any;
   processValue: any;
   lf: Logicflow;
+  /**bpmndi:BPMNPlane标签，可以通过这个读取所有节点的形状数据 */
+  plane: {
+    "bpmndi:BPMNShape": any[];
+    "bpmndi:BPMNEdge": any[];
+  };
+  /**bpmn:process标签，可以读取这个量的属性来获取所有的节点 */
+  process: Record<string, any>;
 }) {
   let x = Number(shapeValue["dc:Bounds"]["-x"]);
   let y = Number(shapeValue["dc:Bounds"]["-y"]);
@@ -386,40 +426,20 @@ function getNodeConfig({
   //   x += shapeConfig.width / 2;
   //   y += shapeConfig.height / 2;
   // }
-  let properties: Record<string, any> | undefined = undefined;
-  // 判断是否存在额外的属性，将额外的属性放到properties中
-  Object.entries(processValue).forEach(([key, value]) => {
-    if (defaultAttrs.indexOf(key) === -1) {
-      if (!properties) properties = {};
-      properties[key] = value;
-    }
-  });
-  if (properties) {
-    properties = toNormalJson(properties);
-  }
   let targetNodeDefinition = getTargetDefinition({
     type,
     lf,
     json: processValue,
   });
-  if (targetNodeDefinition) {
-    if (targetNodeDefinition.adapterIn) {
-      let addOnProps = targetNodeDefinition.adapterIn({
-        lf,
-        shape: shapeValue,
-        tag: processValue,
-      });
-      if (addOnProps) {
-        merge(properties, addOnProps);
-      }
-    }
-  }
-
-  initNodeOrEdgeForm({
+  let inProps = initNodeOrEdgeForm({
     processValue,
     lf,
     nodeDefinition: targetNodeDefinition,
+    shapeValue: shapeValue,
+    plane,
+    process,
   });
+
   let text;
   if (name) {
     text = {
@@ -442,7 +462,7 @@ function getNodeConfig({
     type,
     x,
     y,
-    properties: properties || undefined,
+    properties: inProps,
   };
   if (text) {
     nodeConfig.text = text;
@@ -455,11 +475,20 @@ function getLfEdges({
   bpmnEdges,
   lf,
   key,
+  plane,
+  process,
 }: {
   value: any;
   bpmnEdges: any;
   lf: Logicflow;
   key: string;
+  /**bpmndi:BPMNPlane标签，可以通过这个读取所有节点的形状数据 */
+  plane: {
+    "bpmndi:BPMNShape": any[];
+    "bpmndi:BPMNEdge": any[];
+  };
+  /**bpmn:process标签，可以读取这个量的属性来获取所有的节点 */
+  process: Record<string, any>;
 }) {
   const edges = [];
   if (Array.isArray(value)) {
@@ -473,7 +502,14 @@ function getLfEdges({
         edgeValue = bpmnEdges;
       }
       edges.push(
-        getEdgeConfig({ edgeValue, processValue: val, lf, type: key }),
+        getEdgeConfig({
+          edgeValue,
+          processValue: val,
+          lf,
+          type: key,
+          plane,
+          process,
+        }),
       );
     });
   } else {
@@ -486,7 +522,14 @@ function getLfEdges({
       edgeValue = bpmnEdges;
     }
     edges.push(
-      getEdgeConfig({ edgeValue, processValue: value, lf, type: key }),
+      getEdgeConfig({
+        edgeValue,
+        processValue: value,
+        lf,
+        type: key,
+        plane,
+        process,
+      }),
     );
   }
   return edges;
@@ -515,17 +558,26 @@ let getTargetDefinition = ({
   }
 };
 
-function getEdgeConfig({
+export function getEdgeConfig({
   edgeValue,
   processValue,
   lf,
   type,
+  plane,
+  process,
 }: {
   edgeValue: any;
   processValue: any;
   lf: Logicflow;
   /**标签名称 */
   type: string;
+  /**bpmndi:BPMNPlane标签，可以通过这个读取所有节点的形状数据 */
+  plane: {
+    "bpmndi:BPMNShape": any[];
+    "bpmndi:BPMNEdge": any[];
+  };
+  /**bpmn:process标签，可以读取这个量的属性来获取所有的节点 */
+  process: Record<string, any>;
 }) {
   let text;
   const textVal: string = processValue["-name"];
@@ -545,38 +597,19 @@ function getEdgeConfig({
       y: Number(textBounds["-y"]) + 7,
     };
   }
-  let properties: Record<string, any> | undefined;
-  // 判断是否存在额外的属性，将额外的属性放到properties中
-  Object.entries(processValue).forEach(([key, value]) => {
-    if (defaultAttrs.indexOf(key) === -1) {
-      if (!properties) properties = {};
-      properties[key] = value;
-    }
-  });
-  if (properties) {
-    properties = toNormalJson(properties);
-  }
   let targetEdgeDefinition = getTargetDefinition({
     type,
     lf,
     json: processValue,
   });
-  if (targetEdgeDefinition) {
-    if (targetEdgeDefinition.adapterIn) {
-      let addOnProps = targetEdgeDefinition.adapterIn({
-        lf,
-        shape: edgeValue,
-        tag: processValue,
-      });
-      if (addOnProps) {
-        merge(properties, addOnProps);
-      }
-    }
-  }
-  initNodeOrEdgeForm({
+
+  let inProps = initNodeOrEdgeForm({
     processValue,
     lf,
     nodeDefinition: targetEdgeDefinition,
+    shapeValue: edgeValue,
+    plane,
+    process,
   });
   const edge: EdgeConfig = {
     id: processValue["-id"],
@@ -587,7 +620,7 @@ function getEdgeConfig({
     })),
     sourceNodeId: processValue["-sourceRef"],
     targetNodeId: processValue["-targetRef"],
-    properties,
+    properties: inProps,
   };
   if (text) {
     edge.text = text;
@@ -656,7 +689,6 @@ export class Adapter {
   adapterIn(xmlContent: string) {
     if (xmlContent) {
       let xmlJson = xml2Json(xmlContent);
-
       return convertBpmn2LfData(xmlJson, this.lf);
     }
     return {

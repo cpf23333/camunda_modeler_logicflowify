@@ -28,6 +28,8 @@
   "dependencies": {
     "@logicflow/core": "1.2.10",
     "@logicflow/extension": "1.2.10",
+    "dayjs": "^1.11.9",
+    "ids": "^1.0.5",
     "lodash-es": "^4.17.21",
     "rollup-plugin-visualizer": "^5.9.0",
     "solid-icons": "^1.0.8",

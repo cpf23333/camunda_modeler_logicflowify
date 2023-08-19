@@ -1,3 +1,4 @@
+import { DateSelect } from "@/components/Form/date";
 import {
   GraphModel,
   NodeConfig,
@@ -75,10 +76,30 @@ class UserTaskView extends RectNode {
     ]);
   }
 }
-export let UserTask: nodeDefinition<{
-  /**指定人 */
-  assignee: string;
-}> = {
+export let UserTask: nodeDefinition<
+  {
+    /**指定人 */
+    assignee?: string;
+    /**候选用户组 */
+    group?: string;
+    /**候选用户 */
+    user?: string;
+    /**到期日期 */
+    dueDate?: string;
+    /**跟催日期 */
+    followUpDate?: string;
+  },
+  {},
+  {},
+  {},
+  {
+    "-assignee": string;
+    "-candidateGroups": string;
+    "-candidateUsers": string;
+    "-dueDate": string;
+    "-followUpDate": string;
+  }
+> = {
   name: function (): string {
     return "用户任务";
   },
@@ -113,13 +134,13 @@ export let UserTask: nodeDefinition<{
           label="指定人"
           model={[
             () => model.baseModel.assignee || "",
-            (val) => setModel("baseModel", "assignee", val),
+            (val: string) => setModel("baseModel", "assignee", val),
           ]}></EqualInput>
         <EqualInput
           label="候选用户组"
           model={[
             () => model.baseModel.group,
-            (val) => {
+            (val: string) => {
               setModel("baseModel", "group", val);
             },
           ]}></EqualInput>
@@ -138,7 +159,25 @@ export let UserTask: nodeDefinition<{
             (val) => {
               setModel("baseModel", "dueDate", val);
             },
-          ]}></EqualInput>
+          ]}
+          input={({ equal }) => {
+            let date = model.baseModel.dueDate || "";
+            if (equal()) {
+              date = date.replace("=", "");
+            }
+            return (
+              <DateSelect
+                type="datetime-local"
+                format="YYYY-MM-DDTHH:mm"
+                model={[
+                  () => model.baseModel.dueDate,
+                  (val: any) => {
+                    console.log("due", val);
+                    setModel("baseModel", "dueDate", val);
+                  },
+                ]}></DateSelect>
+            );
+          }}></EqualInput>
         <EqualInput
           label="跟催日期"
           model={[
@@ -146,7 +185,22 @@ export let UserTask: nodeDefinition<{
             (val) => {
               setModel("baseModel", "followUpDate", val);
             },
-          ]}></EqualInput>
+          ]}
+          input={({ equal }) => {
+            let date = model.baseModel.followUpDate || "";
+            if (equal()) {
+              date = date.replace("=", "");
+            }
+            return (
+              <DateSelect
+                type="datetime-local"
+                format="YYYY-MM-DDTHH:mm"
+                model={[
+                  () => model.baseModel.followUpDate,
+                  (val: any) => setModel("baseModel", "followUpDate", val),
+                ]}></DateSelect>
+            );
+          }}></EqualInput>
       </Collapse>,
     ];
   },
@@ -156,6 +210,18 @@ export let UserTask: nodeDefinition<{
     if (baseModel.assignee) {
       tag["-assignee"] = baseModel.assignee;
     }
+    if (baseModel.group) {
+      tag["-candidateGroups"] = baseModel.group;
+    }
+    if (baseModel.user) {
+      tag["-candidateUsers"] = baseModel.user;
+    }
+    if (baseModel.dueDate) {
+      tag["-dueDate"] = baseModel.dueDate;
+    }
+    if (baseModel.followUpDate) {
+      tag["-followUpDate"] = baseModel.followUpDate;
+    }
     return {
       tag: tag,
       shape: {
@@ -163,6 +229,32 @@ export let UserTask: nodeDefinition<{
         "-bioc:fill": "#bbdefb",
         "-color:background-color": "#bbdefb",
         "-color:border-color": "#0d4372",
+      },
+    };
+  },
+  adapterIn(params) {
+    let json = params.tag;
+    console.log(json);
+
+    let form: Record<string, any> = {};
+    if (json["-assignee"]) {
+      form.assignee = json["-assignee"];
+    }
+    if (json["-candidateGroups"]) {
+      form.group = json["-candidateGroups"];
+    }
+    if (json["-candidateUsers"]) {
+      form.user = json["-candidateUsers"];
+    }
+    if (json["-dueDate"]) {
+      form.dueDate = json["-dueDate"];
+    }
+    if (json["-followUpDate"]) {
+      form.followUpDate = json["-followUpDate"];
+    }
+    return {
+      form: {
+        baseModel: form,
       },
     };
   },

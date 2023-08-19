@@ -1,17 +1,26 @@
 import { ModelComponent } from "@/utils/extend";
-import { Show, createEffect, createSignal } from "solid-js";
+import { JSXElement, createEffect, createSignal } from "solid-js";
 import style from "./style.module.scss";
 
 interface EqualInputProp {
   /**标题 */
   label: string;
+  /**自定义的输入控件 */
+  input?: (conf: {
+    /**给组件绑定的model */
+    model: [() => any, (v: any) => any];
+    /**当前是否已激活等号标识 */
+    equal: () => boolean;
+  }) => JSXElement;
 }
 export let EqualInput: ModelComponent<EqualInputProp> = (props) => {
   let [model, setModel] = props["model"];
   let [equal, setEqual] = createSignal(false);
   let [visibleVal, setVisibleVal] = createSignal("");
+  let [inputer, setInputer] = createSignal<JSXElement>("");
+
   createEffect(() => {
-    let val = model();
+    let val = model() || "";
     if (typeof val === "string") {
       if (val.startsWith("=")) {
         setEqual(true);
@@ -20,6 +29,38 @@ export let EqualInput: ModelComponent<EqualInputProp> = (props) => {
         setEqual(false);
         setVisibleVal(val);
       }
+    }
+    if (props.input instanceof Function) {
+      setInputer(props.input && props.input({ model: props.model, equal }));
+    } else if (equal()) {
+      setInputer(
+        <>
+          <div class={style.equal}>=</div>
+          <textarea
+            value={visibleVal()}
+            onInput={(e) => {
+              let val = e.target.value;
+              if (equal()) {
+                setModel("=" + val);
+              } else {
+                setModel(val);
+              }
+            }}></textarea>
+        </>,
+      );
+    } else {
+      setInputer(
+        <input
+          value={visibleVal()}
+          onInput={(e) => {
+            let val = e.target.value;
+            if (equal()) {
+              setModel("=" + val);
+            } else {
+              setModel(val);
+            }
+          }}></input>,
+      );
     }
   });
   return (
@@ -53,33 +94,7 @@ export let EqualInput: ModelComponent<EqualInputProp> = (props) => {
             fill="currentColor"></path>
         </svg>
       </div>
-      <div class={style.content}>
-        <Show when={equal()}>
-          <div class={style.equal}>=</div>
-          <textarea
-            value={visibleVal()}
-            onInput={(e) => {
-              let val = e.target.value;
-              if (equal()) {
-                setModel("=" + val);
-              } else {
-                setModel(val);
-              }
-            }}></textarea>
-        </Show>
-        <Show when={!equal()}>
-          <input
-            value={visibleVal()}
-            onInput={(e) => {
-              let val = e.target.value;
-              if (equal()) {
-                setModel("=" + val);
-              } else {
-                setModel(val);
-              }
-            }}></input>
-        </Show>
-      </div>
+      <div class={style.content}>{inputer()}</div>
     </div>
   );
 };

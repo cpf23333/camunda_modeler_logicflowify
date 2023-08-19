@@ -51,12 +51,25 @@ export type adapterOutParam<
     Forms<BaseModelData, collapseData, generalData, extensionElementsData>
   >;
 };
-export type adapterInParam = {
+export type adapterInParam<xmlJson> = {
   /**形状的json */
   shape: Record<string, any>;
   /**标签的json */
-  tag: Record<string, any>;
+  tag: {
+    "-id": string;
+    "-name": string;
+    "bpmn:documentation": {
+      "#text": string;
+    };
+  } & xmlJson;
   lf: Logicflow;
+  /**bpmndi:BPMNPlane标签，可以通过这个读取所有节点的形状数据 */
+  plane: {
+    "bpmndi:BPMNShape": any[];
+    "bpmndi:BPMNEdge": any[];
+  };
+  /**bpmn:process标签，可以读取这个量的属性来获取所有的节点 */
+  process: Record<string, any>;
 };
 
 export interface adapterOutData {
@@ -80,6 +93,7 @@ export interface nodeDefinition<
   collapseData = any,
   generalData = any,
   extensionElementsData = any,
+  xmlJson = any,
 > {
   /**用户可以看到的节点类型名称 */
   name: () => string;
@@ -143,9 +157,18 @@ export interface nodeDefinition<
   isCurrentNode?: (params: checkCurrentOrInitParams) => boolean | void;
   /**若isCurrentNode返回值为true或对应标签名称下只有这一个节点定义，则会调用这个函数
    *
-   * 如果返回对象，则视为节点的properties
+   * 接收到节点的标签数据，形状数据，返回表单数据及节点的properties
+   *
+   * 该函数调用时，xml对应的节点尚未在画布上渲染
+   *
+   * 所以如果需要读取节点对应的model，需要用`setTimeOut(func,0)`
    */
-  adapterIn?: (params: adapterInParam) => BaseModel["properties"] | void;
+  adapterIn?: (params: adapterInParam<xmlJson>) => {
+    /**logicFlow数据的属性字段 */
+    properties?: BaseModel["properties"];
+    /**这个节点或线的属性面板数据 */
+    form?: Partial<Forms>;
+  } | void;
   /**将该节点实例的自定义数据导出为json */
   adapterOut?: (
     params: adapterOutParam<

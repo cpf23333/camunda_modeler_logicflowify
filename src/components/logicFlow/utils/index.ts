@@ -1,7 +1,7 @@
-import { v4 } from "uuid";
-/**获取一个bpmnid */
-export function getBpmnId() {
-  return v4();
+import Ids from "ids";
+const ids = new Ids([32, 32, 1]);
+export function getBpmnId(): string {
+  return ids.next();
 }
 /**给xmlJson对象添加一个标签的数据 */
 export let xmlJsonAddTagData = (
@@ -64,4 +64,52 @@ export let xml2Json = (xml: string) => {
   return {
     [dom.documentElement.nodeName]: transTag2Json(dom.documentElement),
   };
+};
+/**传入节点的json，返回拓展属性数组 */
+export let getProperties = (xmlJson: Record<string, any>) => {
+  let props: any[] =
+    xmlJson["bpmn:extensionElements"]?.["zeebe:properties"]?.[
+      "zeebe:property"
+    ] || [];
+  if (props) {
+    if (!(props instanceof Array)) {
+      props = [props];
+    }
+    return props.map((o) => {
+      return {
+        name: o["-name"],
+        value: o["-value"],
+      };
+    });
+  }
+  return [];
+};
+/**传入要解析的json，返回属性Map */
+export let getPropertiesMap = (
+  /**要解析的节点的xmlJson */
+  xmlJson: Record<string, any>,
+  /**会有重复name的属性 */
+  isArray?: string[],
+) => {
+  let props = getProperties(xmlJson);
+  let obj: Record<string, any> = {};
+  if (isArray) {
+    let keySet = new Set(isArray);
+    props.forEach((prop) => {
+      if (keySet.has(prop.name)) {
+        if (!obj[prop.name]) {
+          obj[prop.name] = [];
+        }
+        obj[prop.name].push(prop.value);
+      } else {
+        obj[prop.name] = prop.value;
+      }
+    });
+  } else {
+    props.forEach((prop) => {
+      xmlJsonAddTagData(obj, prop.name, prop.value);
+    });
+  }
+
+  return obj;
 };

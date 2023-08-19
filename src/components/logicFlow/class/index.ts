@@ -3,7 +3,6 @@ import { merge } from "lodash-es";
 import { createStore } from "solid-js/store";
 import { reactifyObject } from "solidjs-use";
 import { allNodes } from "../nodes";
-import { nodeDefinition } from "../types";
 import { getBpmnId } from "../utils";
 export type GeneralModel<T = any> = T & {
   /**节点或线的id */
@@ -78,21 +77,10 @@ export class Logicflow extends oldLogicFlow {
       },
     });
   }
-  /**默认的初始化表单功能，如果这个就够用的话，不需要给nodeDefinition设置initModel */
-  initForm(
-    id: NodeOrEdgeId,
-    initData?: Partial<Forms>,
-    otherOptions?: {
-      /**默认情况下会根据id自动寻找对应的定义
-       *
-       * 但在导入时还没有在logicFlow实例上生成这个节点
-       *
-       * 也就无法根据id找到对应mldel，再找到对应的定义
-       *
-       * 这里允许手动传入定义 */
-      nodeDefinition?: nodeDefinition;
-    },
-  ) {
+  /**默认的初始化表单功能
+   *
+   * 如果不传入initData，则本身逻辑只会初始化GeneralData。*/
+  initForm(id: NodeOrEdgeId, initData?: Partial<Forms>) {
     if (id === this.processId) {
       this.forms[id] = createStore<
         Forms<{}, {}, GeneralModel, extensionElement[]>
@@ -111,43 +99,38 @@ export class Logicflow extends oldLogicFlow {
         ),
       );
     } else {
-      let targetType;
       let model = this.getModelById(id);
-      if (otherOptions?.nodeDefinition) {
-        targetType = otherOptions.nodeDefinition;
-      } else {
-        targetType = allNodes[model.type];
-      }
+      let targetDef = allNodes[model.type];
       let defaultForm: Forms = {
         baseModel: {},
         collapseData: {},
         generalData: {
           id: id,
-          name: "",
+          name: model.text?.value,
           document: "",
         },
         extensionElements: [],
         ...(initData || {}),
       };
-      if (targetType && targetType.initModel) {
+      if (targetDef && targetDef.initModel) {
         defaultForm = merge(
           defaultForm,
-          targetType.initModel({ lf: this, model }),
+          targetDef.initModel({ lf: this, model }),
         );
         this.forms[id] = createStore(defaultForm);
-        return;
+      } else {
+        this.forms[id] = createStore<
+          Forms<{}, {}, GeneralModel, extensionElement[]>
+        >({
+          baseModel: {},
+          collapseData: {},
+          generalData: {
+            id: id,
+          },
+          extensionElements: [],
+          ...(initData || {}),
+        });
       }
-      this.forms[id] = createStore<
-        Forms<{}, {}, GeneralModel, extensionElement[]>
-      >({
-        baseModel: {},
-        collapseData: {},
-        generalData: {
-          id: id,
-        },
-        extensionElements: [],
-        ...(initData || {}),
-      });
     }
   }
   getForm<
