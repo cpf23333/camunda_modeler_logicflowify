@@ -2,7 +2,7 @@ import { Form, FormItem } from "@/components/Form";
 import { LogicFlowContext } from "@/components/logicFlow";
 import { For, useContext } from "solid-js";
 import { produce } from "solid-js/store";
-import { Item } from "../../Item";
+import { CollapseItem } from "../../CollapseItem";
 import { Collapse } from "../../collapse";
 
 export let ExtensionProperties = () => {
@@ -29,7 +29,7 @@ export let ExtensionProperties = () => {
         <For each={state.extensionElements}>
           {(item, index) => {
             return (
-              <Item
+              <CollapseItem
                 onDelete={() => {
                   setState(
                     produce((store) => {
@@ -67,7 +67,7 @@ export let ExtensionProperties = () => {
                       }}></input>
                   </FormItem>
                 </Form>
-              </Item>
+              </CollapseItem>
             );
           }}
         </For>

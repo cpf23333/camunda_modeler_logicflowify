@@ -1,3 +1,4 @@
+import Schema, { Rule, Rules } from "async-validator";
 import { Component, JSX, JSXElement, createContext } from "solid-js";
 import style from "./style.module.scss";
 export { FormItem } from "./FormItem";
@@ -30,4 +31,18 @@ export let Form: Component<FromProp> = (props) => {
       </FormContext.Provider>
     </form>
   );
+};
+export let useForm = () => {
+  let allRules: Rules = {};
+  let data = {};
+  return {
+    data,
+    setRules: (prop: string, rules: Rule) => {
+      allRules[prop] = rules;
+    },
+    validate: () => {
+      let validator = new Schema(allRules);
+      return validator.validate(data);
+    },
+  };
 };

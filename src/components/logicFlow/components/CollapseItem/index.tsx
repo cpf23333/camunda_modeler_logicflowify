@@ -1,8 +1,8 @@
-import { Component, JSX, Show, createUniqueId } from "solid-js";
-import style from "./item.module.scss";
-import { BaseModel } from "../../types";
-import { Logicflow } from "../../class";
 import { AiOutlineDelete, AiOutlineDown, AiOutlineRight } from "solid-icons/ai";
+import { Component, JSX, Show, createUniqueId } from "solid-js";
+import { Logicflow } from "../../class";
+import { BaseModel } from "../../types";
+import style from "./item.module.scss";
 interface ItemProp {
   title?: string;
   id: string;
@@ -10,9 +10,10 @@ interface ItemProp {
   model?: BaseModel;
   children?: JSX.Element;
   lf: Logicflow;
-  onDelete: Function;
+  onDelete?: Function;
 }
-export let Item: Component<ItemProp> = (props) => {
+/**可折叠控件 */
+export let CollapseItem: Component<ItemProp> = (props) => {
   let [store, setStore] = props.lf.getForm(
     props.model ? props.model.id : props.lf.processId,
   );
@@ -37,7 +38,7 @@ export let Item: Component<ItemProp> = (props) => {
           }}
           onClick={(e) => {
             e.stopPropagation();
-            props.onDelete();
+            props.onDelete && props.onDelete();
           }}
         />
       </div>

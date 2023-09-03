@@ -12,6 +12,7 @@ import { Collapse } from "../../components/collapse";
 import { EqualInput } from "../../components/equalInput";
 import { nodeDefinition } from "../../types";
 import { getBpmnId } from "../../utils";
+import { IOify } from "../../utils/nodeCommonLogics";
 class UserTaskModel extends RectNodeModel {
   static extendKey = "UserTaskModel";
   constructor(data: NodeConfig, graphModel: GraphModel) {
@@ -76,6 +77,7 @@ class UserTaskView extends RectNode {
     ]);
   }
 }
+let io = IOify({ widthHeader: true });
 export let UserTask: nodeDefinition<
   {
     /**指定人 */
@@ -122,7 +124,7 @@ export let UserTask: nodeDefinition<
   model: UserTaskModel,
   view: UserTaskView,
   initModel(params) {
-    return {};
+    return io.initModel(params);
   },
   modelRender(params) {
     let [model, setModel] = params.form;
@@ -172,7 +174,6 @@ export let UserTask: nodeDefinition<
                 model={[
                   () => model.baseModel.dueDate,
                   (val: any) => {
-                    console.log("due", val);
                     setModel("baseModel", "dueDate", val);
                   },
                 ]}></DateSelect>
@@ -202,6 +203,7 @@ export let UserTask: nodeDefinition<
             );
           }}></EqualInput>
       </Collapse>,
+      io.modelRender ? io.modelRender(params) : "",
     ];
   },
   adapterOut(params) {

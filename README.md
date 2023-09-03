@@ -1,1 +1,3 @@
-对camunda modeler的复刻，使用logic-flow
+对camunda modeler的流程图绘制功能的复刻
+
+使用logic-flow

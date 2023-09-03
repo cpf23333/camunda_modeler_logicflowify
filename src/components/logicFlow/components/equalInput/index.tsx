@@ -5,6 +5,8 @@ import style from "./style.module.scss";
 interface EqualInputProp {
   /**标题 */
   label: string;
+  /**强制等于 */
+  forceEqual?: boolean;
   /**自定义的输入控件 */
   input?: (conf: {
     /**给组件绑定的model */
@@ -15,10 +17,52 @@ interface EqualInputProp {
 }
 export let EqualInput: ModelComponent<EqualInputProp> = (props) => {
   let [model, setModel] = props["model"];
-  let [equal, setEqual] = createSignal(false);
+  let [equal, setEqual] = createSignal(props.forceEqual || false);
   let [visibleVal, setVisibleVal] = createSignal("");
   let [inputer, setInputer] = createSignal<JSXElement>("");
-
+  let currentInputType: "auto" | "custom" | "" = "";
+  createEffect(() => {
+    if (props.input instanceof Function) {
+      if (currentInputType !== "custom") {
+        currentInputType = "custom";
+        setInputer(props.input && props.input({ model: props.model, equal }));
+      }
+    } else {
+      if (currentInputType !== "auto") {
+        currentInputType = "auto";
+        if (equal()) {
+          setInputer(
+            <>
+              <div class={style.equal}>=</div>
+              <textarea
+                value={visibleVal()}
+                onInput={(e) => {
+                  let val = e.target.value;
+                  if (equal()) {
+                    setModel("=" + val);
+                  } else {
+                    setModel(val);
+                  }
+                }}></textarea>
+            </>,
+          );
+        } else {
+          setInputer(
+            <input
+              value={visibleVal()}
+              onInput={(e) => {
+                let val = e.target.value;
+                if (equal() || props.forceEqual) {
+                  setModel("=" + val);
+                } else {
+                  setModel(val);
+                }
+              }}></input>,
+          );
+        }
+      }
+    }
+  });
   createEffect(() => {
     let val = model() || "";
     if (typeof val === "string") {
@@ -30,51 +74,19 @@ export let EqualInput: ModelComponent<EqualInputProp> = (props) => {
         setVisibleVal(val);
       }
     }
-    if (props.input instanceof Function) {
-      setInputer(props.input && props.input({ model: props.model, equal }));
-    } else if (equal()) {
-      setInputer(
-        <>
-          <div class={style.equal}>=</div>
-          <textarea
-            value={visibleVal()}
-            onInput={(e) => {
-              let val = e.target.value;
-              if (equal()) {
-                setModel("=" + val);
-              } else {
-                setModel(val);
-              }
-            }}></textarea>
-        </>,
-      );
-    } else {
-      setInputer(
-        <input
-          value={visibleVal()}
-          onInput={(e) => {
-            let val = e.target.value;
-            if (equal()) {
-              setModel("=" + val);
-            } else {
-              setModel(val);
-            }
-          }}></input>,
-      );
-    }
   });
   return (
     <div
       classList={{
         [style.item]: true,
-        [style.active]: equal(),
+        [style.active]: equal() || props.forceEqual,
       }}>
       <div class={style.label}>
         {props.label}
         <svg
           onClick={() => {
             let val: string = model() || "";
-            if (equal()) {
+            if (equal() || props.forceEqual) {
               setModel(val.slice(1, val.length));
             } else {
               setModel("=" + val);

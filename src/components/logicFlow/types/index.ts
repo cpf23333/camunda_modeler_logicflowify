@@ -7,7 +7,7 @@ import {
 import { JSX } from "solid-js/jsx-runtime";
 import { createStore } from "solid-js/store";
 import { Forms, Logicflow } from "../class";
-type initParams = {
+export type initParams = {
   lf: Logicflow;
   model: BaseNodeModel | BaseEdgeModel;
 };
