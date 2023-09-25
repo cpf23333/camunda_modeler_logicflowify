@@ -15,7 +15,7 @@ export type BaseModel = BaseNodeModel | BaseEdgeModel;
 export type BaseView = BaseNode | BaseEdge;
 type checkCurrentOrInitParams = {
   /**这个节点的json数据 */
-  json: DeepReadonly<Record<string, any>>;
+  json: Readonly<Record<string, any>>;
   lf: Logicflow;
 };
 export type renderParams<
@@ -47,9 +47,11 @@ export type adapterOutParam<
   lf: Logicflow;
   /**该节点的表单数据，包含get和set */
   /**该节点的表单数据，只有get */
-  form: DeepReadonly<
+  form: Readonly<
     Forms<BaseModelData, collapseData, generalData, extensionElementsData>
   >;
+  rootTags: Record<string, any>;
+  rootShapes: Record<string, any>;
 };
 export type adapterInParam<xmlJson> = {
   /**形状的json */

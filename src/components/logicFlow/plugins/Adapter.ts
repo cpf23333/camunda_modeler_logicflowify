@@ -1,11 +1,76 @@
 import { EdgeConfig, GraphConfigData, NodeConfig } from "@logicflow/core";
-import { lfJson2Xml } from "@logicflow/extension";
-import { isPlainObject, merge } from "lodash-es";
+import { cloneDeep, isPlainObject, merge } from "lodash-es";
 import { Logicflow } from "../class/index";
 import { edgeTypes } from "../config";
 import { allNodes, taggedNodes } from "../nodes";
 import { nodeDefinition } from "../types";
-import { getBpmnId, xml2Json } from "../utils";
+import { getBpmnId, xml2Json, xmlJsonAddTagData } from "../utils";
+var tn = "\t\n";
+let toXml = (obj: any, name: string, depth = 0): string => {
+  var frontSpace = "  ".repeat(depth);
+  var str = "";
+  if (name === "#text") {
+    return tn + frontSpace + obj;
+  } else if (name === "#cdata-section") {
+    return tn + frontSpace + "<![CDATA[" + obj + "]]>";
+  } else if (name === "#comment") {
+    return tn + frontSpace + "<!--" + obj + "-->";
+  }
+  if (("" + name).charAt(0) === "-") {
+    return " " + name.substring(1) + '="' + obj + '"';
+  } else {
+    if (Array.isArray(obj)) {
+      obj.forEach(function (item) {
+        str += toXml(item, name, depth + 1);
+      });
+    } else if (Object.prototype.toString.call(obj) === "[object Object]") {
+      let attrs = "";
+      let content = "";
+      str += (depth === 0 ? "" : tn + frontSpace) + "<" + name;
+      for (const key in obj) {
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
+          const val = obj[key];
+          if (val === undefined || val === null) {
+            continue;
+          }
+          if (key.startsWith("-")) {
+            attrs += toXml(val, key, depth + 1);
+          } else {
+            content += toXml(val, key, depth + 1);
+          }
+        }
+      }
+      str +=
+        attrs +
+        (content !== ""
+          ? ">" + content + (tn + frontSpace) + "</" + name + ">"
+          : " />");
+    } else {
+      str +=
+        tn +
+        frontSpace +
+        ("<" + name + ">" + obj.toString() + "</" + name + ">");
+    }
+  }
+  return str;
+};
+/**将json转为xml */
+export let json2Xml = (
+  /**key为标签名称，val为标签的属性和内容 */
+  json: Record<string, any>,
+) => {
+  let final = "";
+  for (const key in json) {
+    if (Object.prototype.hasOwnProperty.call(json, key)) {
+      const val = json[key];
+      if (val === undefined || val === null) {
+        continue;
+      }
+      final += toXml(val, key, 0);
+    }
+  }
+  return final;
+};
 let normalJson2XmlJson = (json: Record<string, any>) => {
   let obj: Record<string, any> = {};
   Object.entries((key: string, val: any) => {
@@ -47,6 +112,40 @@ type processDataItem = {
   "-id": string;
   "-name"?: string;
 } & { [x in string]: any };
+let extractFromTag = (
+  tagData: Record<string, Record<"-id", any> | Record<"-id", any>[]>,
+  tagName: string,
+  id: string,
+  /**是否从原始数据中移除找到的标签数据 */
+  spliceTagData = true,
+) => {
+  if (tagName in tagData) {
+    let tag = tagData[tagName];
+    if (tag instanceof Array) {
+      let targetIndex = tag.findIndex((t) => t["-id"] === id);
+      if (targetIndex != -1) {
+        let target = tag.slice(targetIndex)[0];
+        if (spliceTagData) {
+          tag.splice(targetIndex, 1);
+        }
+        if (tag.length === 0 && spliceTagData) {
+          delete tagData[tagName];
+        }
+        return target;
+      }
+    } else {
+      if (tag["-id"] === id) {
+        if (spliceTagData) {
+          delete tagData[tagName];
+        }
+
+        return tag;
+      }
+    }
+  }
+  throw new Error("未找到目标标签");
+};
+
 let transNodeAndEdge = ({
   data,
   lf,
@@ -54,6 +153,7 @@ let transNodeAndEdge = ({
   data: GraphConfigData;
   lf: Logicflow;
 }) => {
+  let rawData = cloneDeep(data);
   let nodeMap = new Map<string, processDataItem>();
   let bpmnDi: {
     "bpmndi:BPMNShape": any[];
@@ -101,9 +201,12 @@ let transNodeAndEdge = ({
           currentModel: targetModel,
           lf: lf,
           form: Object(lf.getForm(node.id)[0]),
+          rootShapes: tagShapeData,
+          rootTags: tagData,
         });
-        merge(tagData, tag);
-        merge(tagShapeData, shape);
+
+        merge(tagData, tag || {});
+        merge(tagShapeData, shape || {});
       } else {
         let props = targetModel.getProperties();
         merge(tagData, props);
@@ -127,16 +230,7 @@ let transNodeAndEdge = ({
       props.unshift(...extensionElements);
       bpmnDi["bpmndi:BPMNShape"].push(tagShapeData);
       nodeMap.set(node.id, tagData);
-      if (processData[type]) {
-        if (processData[type] instanceof Array) {
-          processData[type].push(tagData);
-        } else {
-          let first = processData[type] as processDataItem;
-          processData[type] = [first, tagData];
-        }
-      } else {
-        processData[type] = tagData;
-      }
+      xmlJsonAddTagData(processData, type, tagData);
     } else {
       console.error(`警告：`, node, "没有id");
     }
@@ -188,9 +282,11 @@ let transNodeAndEdge = ({
           currentModel: lf.getEdgeModelById(edge.id),
           lf,
           form: form,
+          rootTags: edgeTagData,
+          rootShapes: edgeShapeData,
         });
-        merge(edgeTagData, tag);
-        merge(edgeShapeData, shape);
+        merge(edgeTagData, tag || {});
+        merge(edgeShapeData, shape || {});
       }
       if (form.generalData.document) {
         edgeTagData["bpmn:documentation"] = form.generalData.document;
@@ -240,7 +336,60 @@ let transNodeAndEdge = ({
       }
     }
   }
-
+  let subprocessNodes = rawData.nodes.filter(
+    (o) => "children" in o,
+  ) as (NodeConfig & { children: string[]; id: string })[];
+  let topSubprocessNodes = [];
+  for (let i = 0; i < subprocessNodes.length; i++) {
+    const node = subprocessNodes[i];
+    if (subprocessNodes.every((o) => !o.children.includes(node.id))) {
+      topSubprocessNodes.push(node);
+    }
+  }
+  let toHierarchicalNodes = (node: NodeConfig) => {
+    if (
+      "children" in node &&
+      node.children instanceof Array &&
+      node.children.length
+    ) {
+      if (!node.id) {
+        return;
+      }
+      let edgeIds: Set<string> = new Set();
+      let nodeDef = allNodes[lf.getModelById(node.id).type];
+      let nodeTagName = nodeDef.topTag || nodeDef.type;
+      let nodeTag = extractFromTag(processData, nodeTagName, node.id, false);
+      node.children.forEach((childNodeId) => {
+        lf.getNodeIncomingEdge(childNodeId).forEach((edge) => {
+          edgeIds.add(edge.id);
+        });
+        lf.getNodeOutgoingEdge(childNodeId).forEach((edge) => {
+          edgeIds.add(edge.id);
+        });
+        let childModel = lf.getModelById(childNodeId);
+        let targetDef = allNodes[childModel.type];
+        let childTagName = targetDef.topTag || targetDef.type;
+        let childIsGroup = childTagName === "bpmn:subProcess";
+        if (childIsGroup) {
+          toHierarchicalNodes(lf.getNodeDataById(childNodeId));
+        }
+        let childNode = extractFromTag(processData, childTagName, childNodeId);
+        xmlJsonAddTagData(nodeTag, childTagName, childNode);
+      });
+      console.log(Array.from(edgeIds));
+      edgeIds.forEach((edgeId) => {
+        let edgeModel = lf.getModelById(edgeId);
+        let edgeDef = allNodes[edgeModel.type];
+        let edgeTagName = edgeDef.topTag || edgeDef.type;
+        let edgeData = extractFromTag(processData, edgeTagName, edgeId);
+        xmlJsonAddTagData(nodeTag, edgeTagName, edgeData);
+      });
+    }
+  };
+  while (topSubprocessNodes.length) {
+    let node = topSubprocessNodes.splice(0, 1)[0];
+    toHierarchicalNodes(node);
+  }
   return { processData, bpmnDi };
 };
 /**
@@ -633,7 +782,6 @@ export function getEdgeConfig({
 export class Adapter {
   static pluginName = "bpmn-adapter";
   lf: Logicflow;
-
   constructor({ lf }: { lf: Logicflow }) {
     lf.adapterOut = (data) => this.adapterOut(data);
     lf.adapterIn = (xmlContent) => {
@@ -683,7 +831,7 @@ export class Adapter {
         },
       },
     };
-    let txt = `<?xml version="1.0" encoding="UTF-8"?>\r\n` + lfJson2Xml(xml);
+    let txt = `<?xml version="1.0" encoding="UTF-8"?>\r\n` + json2Xml(xml);
     return txt;
   }
   adapterIn(xmlContent: string) {

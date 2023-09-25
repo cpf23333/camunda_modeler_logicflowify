@@ -1,12 +1,12 @@
-import { Component, For, JSX, useContext } from "solid-js";
-import { nodeDefinition } from "../../types";
-import { StartEvent } from "../../nodes/event/startEvent";
-import { EndEvent } from "../../nodes/event/endEvent";
-import style from "./index.module.scss";
+import { Component, For, useContext } from "solid-js";
 import { LogicFlowContext } from "../..";
+import { EndEvent } from "../../nodes/event/endEvent";
+import { StartEvent } from "../../nodes/event/startEvent";
+import { subProcess } from "../../nodes/others/subprocess";
 import { TaskEvent } from "../../nodes/task/task";
 import { UserTask } from "../../nodes/task/userTask";
-
+import { nodeDefinition } from "../../types";
+import style from "./index.module.scss";
 export let LeftDndPanel: Component = () => {
   let lfContext = useContext(LogicFlowContext);
   let providerData = lfContext.providerData;
@@ -15,6 +15,7 @@ export let LeftDndPanel: Component = () => {
     EndEvent,
     TaskEvent,
     UserTask,
+    subProcess,
   ];
   let startDrag = (node: nodeDefinition) => {
     let dnd = providerData.lf.dnd;

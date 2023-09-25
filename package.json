@@ -11,33 +11,33 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@types/lodash-es": "^4.17.8",
-    "@types/node": "^20.2.5",
-    "@types/uuid": "^9.0.1",
+    "@types/lodash-es": "^4.17.9",
+    "@types/node": "^20.6.4",
+    "@types/uuid": "^9.0.4",
     "@typescript-eslint/eslint-plugin": "6.2.0",
-    "eslint": "^8.42.0",
+    "eslint": "^8.50.0",
     "eslint-plugin-solid": "^0.12.1",
     "prettier": "^2.8.8",
     "rollup-plugin-visualizer": "^5.9.2",
-    "sass": "^1.62.1",
+    "sass": "^1.68.0",
     "solid-devtools": "^0.26.1",
-    "typescript": "^5.0.4",
+    "typescript": "^5.2.2",
     "typescript-plugin-css-modules": "^5.0.1",
-    "vite": "^4.4.7",
+    "vite": "^4.4.9",
     "vite-plugin-compression": "^0.5.1",
-    "vite-plugin-solid": "^2.5.0"
+    "vite-plugin-solid": "^2.7.0"
   },
   "dependencies": {
-    "@logicflow/core": "1.2.10",
-    "@logicflow/extension": "1.2.10",
+    "@logicflow/core": "1.2.15",
+    "@logicflow/extension": "1.2.16",
     "async-validator": "^4.2.5",
-    "dayjs": "^1.11.9",
+    "dayjs": "^1.11.10",
     "ids": "^1.0.5",
     "lodash-es": "^4.17.21",
-    "solid-icons": "^1.0.8",
-    "solid-js": "^1.7.8",
+    "solid-icons": "^1.0.12",
+    "solid-js": "^1.7.12",
     "solidjs-use": "^2.3.0",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.1"
   },
   "engines": {
     "node": ">= 16"

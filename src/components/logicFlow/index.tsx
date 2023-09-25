@@ -1,5 +1,6 @@
 import { downloadTxt, readFile } from "@/utils/file";
 import "@logicflow/core/dist/style/index.css";
+import { Group, InsertNodeInPolyline } from "@logicflow/extension";
 import "@logicflow/extension/lib/style/index.css";
 import {
   Component,
@@ -14,6 +15,7 @@ import { useFileDialog } from "solidjs-use";
 import { Logicflow } from "./class";
 import { LeftDndPanel } from "./components/dndPanel";
 import { RightPanel } from "./components/rightPanel";
+import defaultContent from "./default.json?raw";
 import style from "./index.module.scss";
 import { allNodes } from "./nodes";
 import { sequenceFlow } from "./nodes/edges/sequenceFlow";
@@ -21,6 +23,7 @@ import { Adapter } from "./plugins/Adapter";
 import { ContextPad } from "./plugins/contextPad";
 import "./style/index.scss";
 import { BaseModel } from "./types";
+
 let contextStore = createStore<{ lf: Logicflow; currentModel?: BaseModel }>({
   lf: undefined as unknown as Logicflow,
   currentModel: undefined,
@@ -57,7 +60,7 @@ export let Flow: Component<Props> = (props) => {
         type: "dot",
         size: 20,
       },
-      plugins: [ContextPad, Adapter],
+      plugins: [ContextPad, Adapter, Group, InsertNodeInPolyline],
     });
     if (import.meta.env.DEV) {
       let w = window as any;
@@ -68,9 +71,10 @@ export let Flow: Component<Props> = (props) => {
     setShouldShowRightPanel(true);
     newLf.batchRegister(Object.values(allNodes));
     newLf.setDefaultEdgeType(sequenceFlow.type);
-    newLf.render("");
-    console.log("eidt");
-    if (props.state === "edit") {
+    if (defaultContent) {
+      newLf.renderRawData(JSON.parse(defaultContent));
+    } else {
+      newLf.render("");
     }
     newLf.on("node:click,edge:click", (data) => {
       let nodeOrEdge = newLf.getModelById(data.data.id);
