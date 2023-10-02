@@ -119,17 +119,10 @@ export class Logicflow extends oldLogicFlow {
         );
         this.forms[id] = createStore(defaultForm);
       } else {
-        this.forms[id] = createStore<
-          Forms<{}, {}, GeneralModel, extensionElement[]>
-        >({
-          baseModel: {},
-          collapseData: {},
-          generalData: {
-            id: id,
-          },
-          extensionElements: [],
-          ...(initData || {}),
-        });
+        this.forms[id] =
+          createStore<Forms<{}, {}, GeneralModel, extensionElement[]>>(
+            defaultForm,
+          );
       }
     }
   }

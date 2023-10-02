@@ -3,6 +3,8 @@ import {
   BaseEdgeModel,
   BaseNode,
   BaseNodeModel,
+  GraphConfigData,
+  NodeConfig,
 } from "@logicflow/core";
 import { JSX } from "solid-js/jsx-runtime";
 import { createStore } from "solid-js/store";
@@ -53,15 +55,15 @@ export type adapterOutParam<
   rootTags: Record<string, any>;
   rootShapes: Record<string, any>;
 };
-export type adapterInParam<xmlJson> = {
+export type adapterInParam<xmlJson = {}> = {
   /**形状的json */
   shape: Record<string, any>;
   /**标签的json */
   tag: {
-    "-id": string;
-    "-name": string;
-    "bpmn:documentation": {
-      "#text": string;
+    "-id"?: string;
+    "-name"?: string;
+    "bpmn:documentation"?: {
+      "#text"?: string;
     };
   } & xmlJson;
   lf: Logicflow;
@@ -70,8 +72,7 @@ export type adapterInParam<xmlJson> = {
     "bpmndi:BPMNShape": any[];
     "bpmndi:BPMNEdge": any[];
   };
-  /**bpmn:process标签，可以读取这个量的属性来获取所有的节点 */
-  process: Record<string, any>;
+  graphConfigData: GraphConfigData;
 };
 
 export interface adapterOutData {
@@ -95,7 +96,7 @@ export interface nodeDefinition<
   collapseData = any,
   generalData = any,
   extensionElementsData = any,
-  xmlJson = any,
+  xmlJson = Record<string, any>,
 > {
   /**用户可以看到的节点类型名称 */
   name: () => string;
@@ -167,9 +168,14 @@ export interface nodeDefinition<
    */
   adapterIn?: (params: adapterInParam<xmlJson>) => {
     /**logicFlow数据的属性字段 */
-    properties?: BaseModel["properties"];
+    properties?: BaseModel["properties"] & {
+      /**元素的大小，这个字段会被导入功能自动填充，如果传入该字段，会和原始字段自动合并，请谨慎处理 */
+      nodeSize?: { height: number; width: number };
+    };
     /**这个节点或线的属性面板数据 */
     form?: Partial<Forms>;
+    /**如果是嵌套节点，需要给出子项节点id数组 */
+    children?: string[];
   } | void;
   /**将该节点实例的自定义数据导出为json */
   adapterOut?: (
@@ -181,3 +187,6 @@ export interface nodeDefinition<
     >,
   ) => adapterOutData;
 }
+export type FixedNodeConfig = NodeConfig & {
+  children?: string[];
+};

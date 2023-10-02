@@ -15,7 +15,6 @@ import { useFileDialog } from "solidjs-use";
 import { Logicflow } from "./class";
 import { LeftDndPanel } from "./components/dndPanel";
 import { RightPanel } from "./components/rightPanel";
-import defaultContent from "./default.json?raw";
 import style from "./index.module.scss";
 import { allNodes } from "./nodes";
 import { sequenceFlow } from "./nodes/edges/sequenceFlow";
@@ -71,11 +70,7 @@ export let Flow: Component<Props> = (props) => {
     setShouldShowRightPanel(true);
     newLf.batchRegister(Object.values(allNodes));
     newLf.setDefaultEdgeType(sequenceFlow.type);
-    if (defaultContent) {
-      newLf.renderRawData(JSON.parse(defaultContent));
-    } else {
-      newLf.render("");
-    }
+    newLf.render("");
     newLf.on("node:click,edge:click", (data) => {
       let nodeOrEdge = newLf.getModelById(data.data.id);
       setProviderData("currentModel", nodeOrEdge);

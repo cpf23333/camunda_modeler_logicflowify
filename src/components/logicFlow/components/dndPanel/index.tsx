@@ -10,7 +10,7 @@ import style from "./index.module.scss";
 export let LeftDndPanel: Component = () => {
   let lfContext = useContext(LogicFlowContext);
   let providerData = lfContext.providerData;
-  let nodes: Array<nodeDefinition> = [
+  let nodes: Array<nodeDefinition<any, any, any, any, any>> = [
     StartEvent,
     EndEvent,
     TaskEvent,

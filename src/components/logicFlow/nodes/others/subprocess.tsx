@@ -1,5 +1,6 @@
 import { GraphModel } from "@logicflow/core";
 import { GroupNode } from "@logicflow/extension";
+import { getGraphConfigData } from "../../plugins/Adapter";
 import { nodeDefinition } from "../../types";
 let view = GroupNode.view;
 let model = GroupNode.model;
@@ -20,7 +21,22 @@ export let subProcess: nodeDefinition = {
   type: "bpmn:subProcess",
   model: subProcessModel,
   view: subProcessView,
-  adapterIn(params) {},
+  adapterIn(params) {
+    let childG = getGraphConfigData({
+      tagDatas: params.tag,
+      lf: params.lf,
+      plane: params.plane,
+    });
+    params.graphConfigData.edges.push(...childG.edges);
+    params.graphConfigData.nodes.push(...childG.nodes);
+    let childNodeIds: string[] = childG.nodes.map((o) => o.id) as string[];
+    return {
+      form: {
+        baseModel: {},
+      },
+      children: childNodeIds,
+    };
+  },
   adapterOut(params) {
     let model = params.currentModel;
     let tag: Record<string, any> = {
