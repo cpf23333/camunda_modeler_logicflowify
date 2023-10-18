@@ -42,6 +42,16 @@ export interface Forms<
   /**拓展属性 */
   extensionElements: extensionElementsData;
 }
+/**已知的与process标签同级的标签 */
+export let addonTags = ["bpmn:message"] as const;
+type AddOnTagType = (typeof addonTags)[number];
+type BaseTagData = {
+  id: string;
+  name?: string;
+} & { [x in string]: any };
+export interface MessageTagData extends BaseTagData {
+  correlationKey?: string;
+}
 export interface ReadOnlyForms<
   /**基础表单，面板用的数据对象 */
   baseModelCustomData = {},
@@ -62,9 +72,96 @@ export interface ReadOnlyForms<
   extensionElements: ReadonlyArray<extensionElementsData>;
 }
 type NodeOrEdgeId = string;
+class AddonTagStore {
+  adapter: Record<
+    AddOnTagType,
+    {
+      adapterIn(data: any[]): void;
+      adapterOut(): any[];
+    }
+  >;
+  #store = reactifyObject<Record<AddOnTagType, BaseTagData[]>>({
+    "bpmn:message": [],
+  });
+
+  constructor() {
+    this.adapter = {
+      "bpmn:message": {
+        adapterIn: (datas) => {
+          datas.forEach((tagData) => {
+            console.log("data", tagData);
+            let msg: MessageTagData = {
+              id: tagData["-id"],
+              name: tagData["-name"],
+            };
+            let correlationKey =
+              tagData["bpmn:extensionElements"]["zeebe:subscription"][
+                "-correlationKey"
+              ];
+            msg.correlationKey = correlationKey;
+            this.#store["bpmn:message"].push(msg);
+          });
+        },
+        adapterOut: () => {
+          let arr: Record<string, any>[] = [];
+          this.#store["bpmn:message"].forEach((msg) => {
+            let base: Record<string, any> = {
+              "-id": msg.id,
+              "-name": msg.name,
+            };
+            if ("correlationKey" in msg) {
+              base["bpmn:extensionElements"] = {
+                "zeebe:subscription": {
+                  "-correlationKey": msg.correlationKey,
+                },
+              };
+            }
+            arr.push(base);
+          });
+          return arr;
+        },
+      },
+    };
+  }
+  /**注意，获取到的标签是弱引用关系，对获取到的标签对象的修改会直接同步到类中 */
+  getTag(tagName: AddOnTagType) {
+    return this.#store[tagName];
+  }
+  /**设置一个message */
+  setTag(tagName: "bpmn:message", data: BaseTagData): void;
+  setTag(tagName: AddOnTagType, data: BaseTagData) {
+    this.#store[tagName].push(data);
+  }
+  adapterOut() {
+    let obj: Record<AddOnTagType, any[]> = {
+      "bpmn:message": [],
+    };
+    Object.keys(this.#store).forEach((tagName) => {
+      obj[tagName as AddOnTagType] =
+        this.adapter[tagName as AddOnTagType].adapterOut();
+    });
+    return obj;
+  }
+  adapterIn(xmlJson: Record<string, any>) {
+    let content = xmlJson["bpmn:definitions"];
+    addonTags.forEach((tagName) => {
+      if (tagName in content) {
+        let data = content[tagName];
+        if (!data) {
+          return;
+        }
+        if (!Array.isArray(data)) {
+          data = [data];
+        }
+        this.adapter[tagName].adapterIn(data);
+      }
+    });
+  }
+}
 
 export class Logicflow extends oldLogicFlow {
   processId: string;
+  globalTags = new AddonTagStore();
   constructor(options: Definition) {
     super(options);
     this.processId = `Process_${getBpmnId()}`;

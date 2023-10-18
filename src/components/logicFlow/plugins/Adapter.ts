@@ -58,6 +58,8 @@ let toXml = (obj: any, name: string, depth = 0): string => {
 export let json2Xml = (
   /**key为标签名称，val为标签的属性和内容 */
   json: Record<string, any>,
+  /**初始的标签深度 */
+  initDepth = 0,
 ) => {
   let final = "";
   for (const key in json) {
@@ -66,7 +68,7 @@ export let json2Xml = (
       if (val === undefined || val === null) {
         continue;
       }
-      final += toXml(val, key, 0);
+      final += toXml(val, key, initDepth);
     }
   }
   return final;
@@ -745,7 +747,7 @@ export class Adapter {
         "-xmlns:zeebe": "http://camunda.org/schema/zeebe/1.0",
         "-xmlns:modeler": "http://camunda.org/schema/modeler/1.0",
         "-targetNamespace": "http://bpmn.io/schema/bpmn",
-        /**@see  {@link{https://forum.bpmn.io/t/how-to-add-color-to-bpmn-diagram-for-dynamic-xml/5269#:~:text=DD/20100524/DC%22-,xmlns%3Abioc,-%3D%22http%3A//bpmn}} */
+        /**@see {@link{https://forum.bpmn.io/t/how-to-add-color-to-bpmn-diagram-for-dynamic-xml/5269#:~:text=DD/20100524/DC%22-,xmlns%3Abioc,-%3D%22http%3A//bpmn}} */
         "-xmlns:bioc": "http://bpmn.io/schema/bpmn/biocolor/1.0",
         // 上面讨论中没有提及，这里先使用和bioc一样的链接
         "-xmlns:color": "http://bpmn.io/schema/bpmn/biocolor/1.0",
@@ -762,6 +764,7 @@ export class Adapter {
             ...transedData.bpmnDi,
           },
         },
+        ...this.lf.globalTags.adapterOut(),
       },
     };
     let txt = `<?xml version="1.0" encoding="UTF-8"?>\r\n` + json2Xml(xml);
@@ -770,6 +773,7 @@ export class Adapter {
   adapterIn(xmlContent: string) {
     if (xmlContent) {
       let xmlJson = xml2Json(xmlContent);
+      this.lf.globalTags.adapterIn(xmlJson);
       let res = convertBpmn2LfData(xmlJson, this.lf);
       return res;
     }
