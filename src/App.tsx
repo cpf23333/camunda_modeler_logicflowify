@@ -1,14 +1,15 @@
 import { type Component } from "solid-js";
-import { Flow } from "./components/logicFlow";
-import { Logicflow } from "./components/logicFlow/class";
-let App: Component = () => {
-  let Lf: Logicflow;
+let App: Component<{
+  children?: any;
+}> = (props) => {
   return (
-    <Flow
-      state="edit"
-      lf={(lf) => {
-        Lf = lf;
-      }}></Flow>
+    <div>
+      <div>
+        <a href="/">常规页面</a>
+        <a href="/elk">elk布局</a>
+      </div>
+      {props.children}
+    </div>
   );
 };
 
