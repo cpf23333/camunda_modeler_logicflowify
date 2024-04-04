@@ -31,6 +31,10 @@ export let LogicFlowContext = createContext({
   providerData: contextStore[0],
   setProviderData: contextStore[1],
 });
+enum ExportType {
+  direct = "direct",
+  inputName = "inputName",
+}
 interface Props {
   /**当前状态是编辑还是查看
    * @type {"edit"|"view"}
@@ -115,14 +119,30 @@ export let Flow: Component<Props> = (props) => {
               <div class={style["top-center"]}>logicflow</div>
               <div class={style["top-right"]}>
                 <button onClick={() => fileFuncs.open()}>导入</button>
-                <button
-                  onClick={() => {
-                    let xml = providerData.lf.getGraphData();
-                    downloadTxt(xml, "bpmn.bpmn");
-                    console.log("导出完毕");
+                <select
+                  oninput={(e) => {
+                    try {
+                      let val = e.target.value as ExportType;
+                      if (val) {
+                        let xml = providerData.lf.getGraphData();
+                        let name = "bpmn.bpmn";
+                        if (val == ExportType.inputName) {
+                          let inputName = prompt("请输入文件名", name);
+                          if (!inputName) {
+                            return;
+                          }
+                          name = inputName;
+                        }
+                        downloadTxt(xml, name);
+                      }
+                    } finally {
+                      e.target.value = "";
+                    }
                   }}>
-                  导出
-                </button>
+                  <option value={""}>选择导出方式</option>
+                  <option value={ExportType.direct}>直接导出</option>
+                  <option value={ExportType.inputName}>填写文件名导出</option>
+                </select>
               </div>
             </div>
           </Show>
