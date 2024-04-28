@@ -249,4 +249,8 @@ export class Logicflow extends oldLogicFlow {
     NodeOrEdgeId,
     ReturnType<typeof createStore<Forms<any, any, any, any>>>
   > = reactifyObject({});
+  /**排版 */
+  doLayout() {
+    let rawData = this.getGraphRawData();
+  }
 }

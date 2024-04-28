@@ -3,6 +3,7 @@ import {
   BaseEdgeModel,
   BaseNode,
   BaseNodeModel,
+  EdgeConfig,
   GraphConfigData,
   NodeConfig,
 } from "@logicflow/core";
@@ -187,6 +188,20 @@ export interface nodeDefinition<
     >,
   ) => adapterOutData;
 }
-export type FixedNodeConfig = NodeConfig & {
+export interface FixedNodeConfig extends NodeConfig {
   children?: string[];
-};
+  properties: {
+    /**本节点的大小数据 */
+    nodeSize: {
+      width: number;
+      height: number;
+    };
+  } & {
+    [x in string]: any;
+  };
+}
+
+export interface fixedGraphConfigData {
+  nodes: FixedNodeConfig[];
+  edges: EdgeConfig[];
+}
