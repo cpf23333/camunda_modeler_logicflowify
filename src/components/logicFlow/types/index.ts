@@ -189,6 +189,7 @@ export interface nodeDefinition<
   ) => adapterOutData;
 }
 export interface FixedNodeConfig extends NodeConfig {
+  id: string;
   children?: string[];
   properties: {
     /**本节点的大小数据 */
@@ -200,8 +201,10 @@ export interface FixedNodeConfig extends NodeConfig {
     [x in string]: any;
   };
 }
-
+interface FixedEdgeConfig extends EdgeConfig {
+  id: string;
+}
 export interface fixedGraphConfigData {
   nodes: FixedNodeConfig[];
-  edges: EdgeConfig[];
+  edges: FixedEdgeConfig[];
 }

@@ -1,8 +1,10 @@
 import { Definition, LogicFlow as oldLogicFlow } from "@logicflow/core";
-import { merge } from "lodash-es";
+import ElkConstructor, { ElkNode } from "elkjs";
+import { cloneDeep, merge } from "lodash-es";
 import { createStore } from "solid-js/store";
 import { reactifyObject } from "solidjs-use";
 import { allNodes } from "../nodes";
+import { fixedGraphConfigData } from "../types";
 import { getBpmnId } from "../utils";
 export type GeneralModel<T = any> = T & {
   /**节点或线的id */
@@ -89,7 +91,6 @@ class AddonTagStore {
       "bpmn:message": {
         adapterIn: (datas) => {
           datas.forEach((tagData) => {
-            console.log("data", tagData);
             let msg: MessageTagData = {
               id: tagData["-id"],
               name: tagData["-name"],
@@ -250,7 +251,179 @@ export class Logicflow extends oldLogicFlow {
     ReturnType<typeof createStore<Forms<any, any, any, any>>>
   > = reactifyObject({});
   /**排版 */
-  doLayout() {
-    let rawData = this.getGraphRawData();
+  async doLayout(_params?: {
+    /**是否在排版错误时发出一个提示
+     * @default false */
+    noticeErr?: boolean;
+  }) {
+    let rawData = this.getGraphRawData() as unknown as fixedGraphConfigData;
+    let clonedRawData = cloneDeep(rawData);
+    let nodeIdMap: Record<string, (typeof rawData)["nodes"][number]> = {};
+    let nodes = [];
+    let edges = [];
+    let topNodes = [];
+    let edgeIdMap: Record<string, (typeof rawData)["edges"][number]> = {};
+    rawData.nodes.forEach((node) => {
+      nodeIdMap[node.id] = node;
+    });
+    /**
+     * @type {Set<string>}
+     */
+    let settedEdgeId: Set<string> = new Set();
+    rawData.edges.forEach((edge) => {
+      edgeIdMap[edge.id] = edge;
+    });
+    /**
+     * 如果一个id在这个对象里的话，说明这个节点不是最上层的，是在子流程内的节点
+     */
+    let childIdMap: Record<string, true> = {};
+    rawData.nodes.forEach((node) => {
+      if (node.children) {
+        node.children.forEach((child) => {
+          childIdMap[child] = true;
+        });
+      }
+    });
+    for (let i = 0; i < rawData.nodes.length; i++) {
+      const node = rawData.nodes[i];
+      if (node.children && !(node.id in childIdMap)) {
+        topNodes.push(node);
+        rawData.nodes.splice(i, 1);
+        i -= 1;
+      }
+    }
+    /**
+     *
+     * @param {rawData["edges"][number]} edge
+     */
+    let getEdge = (edge: (typeof rawData)["edges"][number]) => {
+      let obj = {
+        id: edge.id,
+        sources: [edge.sourceNodeId],
+        targets: [edge.targetNodeId],
+      };
+      return obj;
+    };
+    let getNode = (node: (typeof rawData)["nodes"][number]) => {
+      let obj: ElkNode = {
+        id: node.id,
+        height: node.properties.nodeSize.height,
+        width: node.properties.nodeSize.width,
+        x: node.x,
+        y: node.y,
+        labels: [],
+        children: [],
+        edges: [],
+      };
+      if (node.text) {
+        if (typeof node.text == "string") {
+          obj.labels!.push({
+            text: node.text,
+          });
+        } else {
+          obj.labels!.push({
+            text: node.text.value,
+            x: node.text.x,
+            y: node.text.y,
+          });
+        }
+      }
+      if (node.children) {
+        let childIds = node.children;
+        childIds.forEach((childId) => {
+          let childIdIndex = rawData.nodes.findIndex((o) => o.id === childId);
+          if (childIdIndex !== -1) {
+            let child = rawData.nodes.splice(childIdIndex, 1)[0];
+            obj.children!.push(getNode(child));
+          }
+        });
+        for (const key in edgeIdMap) {
+          if (Object.hasOwnProperty.call(edgeIdMap, key)) {
+            const edge = edgeIdMap[key];
+            let startId = edge.sourceNodeId;
+            let endId = edge.targetNodeId;
+            if (
+              !settedEdgeId.has(edge.id) &&
+              childIds.includes(startId) &&
+              childIds.includes(endId)
+            ) {
+              // 这条线是在本层级的
+              obj.edges!.push(getEdge(edge));
+              settedEdgeId.add(edge.id);
+            }
+          }
+        }
+      }
+      return obj;
+    };
+    topNodes.forEach((node) => {
+      nodes.push(getNode(node));
+    });
+    while (rawData.nodes.length) {
+      let node = rawData.nodes.splice(0, 1)[0];
+      nodes.push(getNode(node));
+    }
+    for (const key in edgeIdMap) {
+      if (Object.hasOwnProperty.call(edgeIdMap, key)) {
+        if (!settedEdgeId.has(key)) {
+          const edge = edgeIdMap[key];
+          edges.push(getEdge(edge));
+        }
+      }
+    }
+    let graph = {
+      id: "root",
+      children: nodes,
+      edges,
+    };
+
+    let elkIns = new ElkConstructor();
+    let res = await elkIns.layout(graph);
+    clonedRawData.nodes.forEach((node) => {
+      nodeIdMap[node.id] = node;
+    });
+    clonedRawData.edges.forEach((edge) => {
+      edgeIdMap[edge.id] = edge;
+    });
+    res.children?.forEach((node) => {
+      let rawNode = nodeIdMap[node.id];
+      rawNode.x = (node.x || 0) + (node.width || 0);
+      rawNode.y = (node.y || 0) + (node.height || 0);
+      if (node.labels?.length) {
+        let label = node.labels[0];
+        if (typeof rawNode.text === "string") {
+          rawNode.text = label.text || "";
+        } else {
+          rawNode.text = {
+            id: label.id,
+            value: label.text || "",
+            x: label.x!,
+            y: label.y!,
+          };
+        }
+      }
+    });
+    res.edges?.forEach((edge) => {
+      let rawEdge = edgeIdMap[edge.id];
+      let sections = edge.sections!;
+      let start = sections[0];
+      let end = sections[sections.length - 1];
+      let startNode = nodeIdMap[rawEdge.sourceNodeId];
+      rawEdge.startPoint = {
+        x: start.startPoint.x + startNode.properties.nodeSize.width / 2,
+        y: start.startPoint.y + startNode.properties.nodeSize.height / 2,
+      };
+      let endNode = nodeIdMap[rawEdge.targetNodeId];
+      rawEdge.endPoint = {
+        x: end.endPoint.x + endNode.properties.nodeSize.width / 2,
+        y: end.endPoint.y + endNode.properties.nodeSize.height / 2,
+      };
+      rawEdge.pointsList = [rawEdge.startPoint!, rawEdge.endPoint!];
+    });
+    console.log(clonedRawData, res, graph);
+
+    this.renderRawData(clonedRawData);
+
+    // console.log(elkIns);
   }
 }
