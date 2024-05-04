@@ -74,7 +74,7 @@ export let Flow: Component<Props> = (props) => {
     setShouldShowRightPanel(true);
     newLf.batchRegister(Object.values(allNodes));
     newLf.setDefaultEdgeType(sequenceFlow.type);
-    newLf.render("");
+    newLf.render();
     newLf.on("node:click,edge:click", (data) => {
       let nodeOrEdge = newLf.getModelById(data.data.id);
       setProviderData("currentModel", nodeOrEdge);
