@@ -1,7 +1,11 @@
 import { EdgeConfig, GraphConfigData, NodeConfig } from "@logicflow/core";
 import { cloneDeep, isPlainObject, merge } from "lodash-es";
 import { Logicflow } from "../class/index";
-import { edgeTagNames, knownNonNodeOrEdgeNames } from "../config";
+import {
+  edgeTagNames,
+  groupTagNames,
+  knownNonNodeOrEdgeNames,
+} from "../config";
 import { allNodes, taggedNodes } from "../nodes";
 import { FixedNodeConfig, nodeDefinition } from "../types";
 import { getBpmnId, xml2Json, xmlJsonAddTagData } from "../utils";
@@ -114,6 +118,7 @@ type processDataItem = {
   "-id": string;
   "-name"?: string;
 } & { [x in string]: any };
+/**给定一个标签名和标签的id，将目标标签从整体数据中取出 */
 let extractFromTag = (
   tagData: Record<string, Record<"-id", any> | Record<"-id", any>[]>,
   tagName: string,
@@ -371,7 +376,7 @@ let transNodeAndEdge = ({
         let childModel = lf.getModelById(childNodeId);
         let targetDef = allNodes[childModel.type];
         let childTagName = targetDef.topTag || targetDef.type;
-        let childIsGroup = childTagName === "bpmn:subProcess";
+        let childIsGroup = groupTagNames.includes(childTagName);
         if (childIsGroup) {
           toHierarchicalNodes(lf.getNodeDataById(childNodeId));
         }
@@ -403,9 +408,13 @@ export let getGraphConfigData = ({
   plane: { "bpmndi:BPMNShape": any[]; "bpmndi:BPMNEdge": any[] };
   lf: Logicflow;
 }) => {
-  let g: GraphConfigData = {
+  let g: GraphConfigData & {
+    /**提供给子流程节点的children字段 */
+    children: string[];
+  } = {
     edges: [],
     nodes: [],
+    children: [],
   };
   for (const tagName in tagDatas) {
     if (tagName.startsWith("-") || knownNonNodeOrEdgeNames.includes(tagName)) {
@@ -444,6 +453,7 @@ export let getGraphConfigData = ({
             graphConfigData: g,
           });
           g.nodes.push(newNode);
+          g.children.push(newNode.id!);
         });
       }
     }

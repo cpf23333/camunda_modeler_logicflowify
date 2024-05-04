@@ -16,7 +16,7 @@ class subProcessModel extends model {
 export let subProcess: nodeDefinition = {
   name: () => "子流程",
   icon: () => {
-    return "";
+    return "icon";
   },
   type: "bpmn:subProcess",
   model: subProcessModel,
@@ -29,7 +29,7 @@ export let subProcess: nodeDefinition = {
     });
     params.graphConfigData.edges.push(...childG.edges);
     params.graphConfigData.nodes.push(...childG.nodes);
-    let childNodeIds: string[] = childG.nodes.map((o) => o.id) as string[];
+    let childNodeIds: string[] = [...childG.children];
     return {
       form: {
         baseModel: {},
