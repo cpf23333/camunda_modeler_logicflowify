@@ -1,6 +1,6 @@
 import { resolve } from "path";
 import { visualizer } from "rollup-plugin-visualizer";
-import devtools from "solid-devtools/vite";
+// import devtools from "solid-devtools/dist/vite";
 import { Plugin, defineConfig } from "vite";
 import compress from "vite-plugin-compression";
 import solidPlugin from "vite-plugin-solid";
@@ -15,10 +15,10 @@ if (process.env.NODE_ENV === "production") {
 export default defineConfig({
   base: "./",
   plugins: [
-    devtools({
-      /* additional options */
-      autoname: true, // e.g. enable autoname
-    }),
+    // devtools({
+    //   /* additional options */
+    //   autoname: true, // e.g. enable autoname
+    // }),
     solidPlugin(),
     visualizer({
       filename: "dist/stats.html",
@@ -32,6 +32,13 @@ export default defineConfig({
   },
   server: {
     port: 31000,
+  },
+  css: {
+    preprocessorOptions: {
+      scss: {
+        api: "modern-compiler",
+      },
+    },
   },
   build: {
     target: "esnext",
