@@ -150,7 +150,7 @@ let extractFromTag = (
       }
     }
   }
-  throw new Error("未找到目标标签");
+  throw new Error(`${tagName}：未找到目标标签`);
 };
 
 let transNodeAndEdge = ({
@@ -383,7 +383,6 @@ let transNodeAndEdge = ({
         let childNode = extractFromTag(processData, childTagName, childNodeId);
         xmlJsonAddTagData(nodeTag, childTagName, childNode);
       });
-      console.log(Array.from(edgeIds));
       edgeIds.forEach((edgeId) => {
         let edgeModel = lf.getModelById(edgeId);
         let edgeDef = allNodes[edgeModel.type];

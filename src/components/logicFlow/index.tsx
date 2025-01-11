@@ -118,7 +118,12 @@ export let Flow: Component<Props> = (props) => {
               <div class={style["top-left"]}></div>
               <div class={style["top-center"]}>logicflow</div>
               <div class={style["top-right"]}>
-                <button onClick={() => fileFuncs.open()}>导入</button>
+                <button
+                  onClick={() =>
+                    fileFuncs.open({ accept: ".bpmn", multiple: false })
+                  }>
+                  导入
+                </button>
                 <select
                   oninput={(e) => {
                     try {

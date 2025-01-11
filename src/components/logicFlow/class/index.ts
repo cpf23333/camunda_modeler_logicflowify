@@ -371,10 +371,14 @@ export class Logicflow extends oldLogicFlow {
         }
       }
     }
-    let graph = {
+    let graph: ElkNode = {
       id: "root",
       children: nodes,
       edges,
+      layoutOptions: {
+        "elk.algorithm": "layered",
+        nodeLabelPlacement: "OUTSIDE V_TOP H_CENTER",
+      },
     };
 
     let elkIns = new ElkConstructor();
@@ -405,7 +409,10 @@ export class Logicflow extends oldLogicFlow {
     });
     res.edges?.forEach((edge) => {
       let rawEdge = edgeIdMap[edge.id];
-      let sections = edge.sections!;
+      let sections = edge.sections;
+      if (!sections?.length) {
+        return;
+      }
       let start = sections[0];
       let end = sections[sections.length - 1];
       let startNode = nodeIdMap[rawEdge.sourceNodeId];
