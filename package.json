@@ -8,7 +8,8 @@
     "start": "vite",
     "dev": "vite",
     "build": "vite build",
-    "serve": "vite preview"
+    "serve": "vite preview",
+    "typecheck": "tsc --noEmit"
   },
   "license": "MIT",
   "devDependencies": {
@@ -29,8 +30,8 @@
     "vite-plugin-solid": "^2.11.0"
   },
   "dependencies": {
-    "@logicflow/core": "1.2.15",
-    "@logicflow/extension": "1.2.16",
+    "@logicflow/core": "2.0.10",
+    "@logicflow/extension": "2.0.14",
     "@solidjs/router": "^0.15.2",
     "async-validator": "^4.2.5",
     "dayjs": "^1.11.13",

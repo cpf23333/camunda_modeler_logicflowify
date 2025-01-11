@@ -1,5 +1,5 @@
-import { Definition, LogicFlow as oldLogicFlow } from "@logicflow/core";
-import ElkConstructor, { ElkNode } from "elkjs";
+import { LogicFlow as oldLogicFlow, Options } from "@logicflow/core";
+import ElkConstructor, { ElkNode } from "elkjs/lib/elk.bundled";
 import { cloneDeep, merge } from "lodash-es";
 import { createStore } from "solid-js/store";
 import { reactifyObject } from "solidjs-use";
@@ -163,7 +163,7 @@ class AddonTagStore {
 export class Logicflow extends oldLogicFlow {
   processId: string;
   globalTags = new AddonTagStore();
-  constructor(options: Definition) {
+  constructor(options: Options.Common) {
     super(options);
     this.processId = `Process_${getBpmnId()}`;
     this.initForm(this.processId, {
@@ -198,6 +198,9 @@ export class Logicflow extends oldLogicFlow {
       );
     } else {
       let model = this.getModelById(id);
+      if (!model) {
+        throw new Error("未获取到对应节点或线模型");
+      }
       let targetDef = allNodes[model.type];
       let defaultForm: Forms = {
         baseModel: {},
@@ -264,29 +267,33 @@ export class Logicflow extends oldLogicFlow {
     let topNodes = [];
     let edgeIdMap: Record<string, (typeof rawData)["edges"][number]> = {};
     rawData.nodes.forEach((node) => {
-      nodeIdMap[node.id] = node;
+      nodeIdMap[node.id!] = node;
     });
     /**
      * @type {Set<string>}
      */
     let settedEdgeId: Set<string> = new Set();
     rawData.edges.forEach((edge) => {
-      edgeIdMap[edge.id] = edge;
+      edgeIdMap[edge.id!] = edge;
     });
     /**
      * 如果一个id在这个对象里的话，说明这个节点不是最上层的，是在子流程内的节点
      */
     let childIdMap: Record<string, true> = {};
     rawData.nodes.forEach((node) => {
+      let model = this.getModelById(node.id!)!;
+
+      let anchors = model.anchors as Array<any>;
+
       if (node.children) {
-        node.children.forEach((child) => {
-          childIdMap[child] = true;
+        node.children.forEach((childNodeId) => {
+          childIdMap[childNodeId] = true;
         });
       }
     });
     for (let i = 0; i < rawData.nodes.length; i++) {
       const node = rawData.nodes[i];
-      if (node.children && !(node.id in childIdMap)) {
+      if (node.children && !(node.id! in childIdMap)) {
         topNodes.push(node);
         rawData.nodes.splice(i, 1);
         i -= 1;
@@ -298,7 +305,7 @@ export class Logicflow extends oldLogicFlow {
      */
     let getEdge = (edge: (typeof rawData)["edges"][number]) => {
       let obj = {
-        id: edge.id,
+        id: edge.id!,
         sources: [edge.sourceNodeId],
         targets: [edge.targetNodeId],
       };
@@ -306,11 +313,9 @@ export class Logicflow extends oldLogicFlow {
     };
     let getNode = (node: (typeof rawData)["nodes"][number]) => {
       let obj: ElkNode = {
-        id: node.id,
-        height: node.properties.nodeSize.height,
-        width: node.properties.nodeSize.width,
-        x: node.x,
-        y: node.y,
+        id: node.id!,
+        height: this.getNodeModelById(node.id!)!.height,
+        width: this.getNodeModelById(node.id!)!.width,
         labels: [],
         children: [],
         edges: [],
@@ -340,16 +345,17 @@ export class Logicflow extends oldLogicFlow {
         for (const key in edgeIdMap) {
           if (Object.hasOwnProperty.call(edgeIdMap, key)) {
             const edge = edgeIdMap[key];
+
             let startId = edge.sourceNodeId;
             let endId = edge.targetNodeId;
             if (
-              !settedEdgeId.has(edge.id) &&
+              !settedEdgeId.has(edge.id!) &&
               childIds.includes(startId) &&
               childIds.includes(endId)
             ) {
               // 这条线是在本层级的
-              obj.edges!.push(getEdge(edge));
-              settedEdgeId.add(edge.id);
+              obj.edges!.push(getEdge(edge) as any);
+              settedEdgeId.add(edge.id!);
             }
           }
         }
@@ -384,10 +390,10 @@ export class Logicflow extends oldLogicFlow {
     let elkIns = new ElkConstructor();
     let res = await elkIns.layout(graph);
     clonedRawData.nodes.forEach((node) => {
-      nodeIdMap[node.id] = node;
+      nodeIdMap[node.id!] = node;
     });
     clonedRawData.edges.forEach((edge) => {
-      edgeIdMap[edge.id] = edge;
+      edgeIdMap[edge.id!] = edge;
     });
     res.children?.forEach((node) => {
       let rawNode = nodeIdMap[node.id];
@@ -399,7 +405,6 @@ export class Logicflow extends oldLogicFlow {
           rawNode.text = label.text || "";
         } else {
           rawNode.text = {
-            id: label.id,
             value: label.text || "",
             x: label.x!,
             y: label.y!,
@@ -416,14 +421,16 @@ export class Logicflow extends oldLogicFlow {
       let start = sections[0];
       let end = sections[sections.length - 1];
       let startNode = nodeIdMap[rawEdge.sourceNodeId];
+      let startNodeModel = this.getNodeModelById(startNode.id!);
       rawEdge.startPoint = {
-        x: start.startPoint.x + startNode.properties.nodeSize.width / 2,
-        y: start.startPoint.y + startNode.properties.nodeSize.height / 2,
+        x: start.startPoint.x + startNodeModel!.width / 2,
+        y: start.startPoint.y + startNodeModel!.height / 2,
       };
       let endNode = nodeIdMap[rawEdge.targetNodeId];
+      let endNodeModel = this.getNodeModelById(endNode.id!);
       rawEdge.endPoint = {
-        x: end.endPoint.x + endNode.properties.nodeSize.width / 2,
-        y: end.endPoint.y + endNode.properties.nodeSize.height / 2,
+        x: end.endPoint.x + endNodeModel!.width / 2,
+        y: end.endPoint.y + endNodeModel!.height / 2,
       };
       rawEdge.pointsList = [rawEdge.startPoint!, rawEdge.endPoint!];
     });

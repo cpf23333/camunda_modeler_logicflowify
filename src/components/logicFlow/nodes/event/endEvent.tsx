@@ -1,17 +1,15 @@
-import {
+import LogicFlow, {
   CircleNode,
   CircleNodeModel,
   GraphModel,
-  NodeConfig,
   h,
 } from "@logicflow/core";
-import { getBpmnId } from "../../utils";
-import { nodeDefinition } from "../../types";
-import { General } from "../../components/rightPanel/common/general";
 import { CustomIcon } from "solid-icons";
+import { nodeDefinition } from "../../types";
+import { getBpmnId } from "../../utils";
 class EndEventModel extends CircleNodeModel {
   static extendKey = "EndEventModel";
-  constructor(data: NodeConfig, graphModel: GraphModel) {
+  constructor(data: LogicFlow.NodeConfig, graphModel: GraphModel) {
     if (!data.id) {
       data.id = `Event_${getBpmnId()}`;
     }

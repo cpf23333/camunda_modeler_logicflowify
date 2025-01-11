@@ -1,4 +1,4 @@
-import { NodeConfig } from "@logicflow/core";
+import LogicFlow from "@logicflow/core";
 import { AiOutlineDelete } from "solid-icons/ai";
 import { For, render } from "solid-js/web";
 import { Logicflow } from "../class";
@@ -92,10 +92,10 @@ export class ContextPad {
   render(lf: Logicflow, container: HTMLElement) {
     this.container = container;
     lf.on("node:click", ({ data }) => {
-      this.createContextMenu(data);
+      this.createContextMenu(data as any);
     });
     lf.on("edge:click", ({ data }) => {
-      this.createContextMenu(data);
+      this.createContextMenu(data as any);
     });
     lf.on("blank:click", () => {
       this.hideContextMenu();
@@ -192,7 +192,7 @@ export class ContextPad {
       return;
     }
     let items: ReturnType<contextPadConfig>[] = [];
-    let target = this.lf.getModelById(data.id);
+    let target = this.lf.getModelById(data.id)!;
     if (target.BaseType === "node") {
       if (target.type !== EndEvent.type) {
         items.push(...this.nodeConfigs.map((conf) => conf(data, this.lf)));
@@ -238,7 +238,7 @@ export class ContextPad {
     y,
     sourceId,
   }: {
-    node: NodeConfig;
+    node: LogicFlow.NodeConfig;
     y?: number;
     sourceId: string;
   }) {
@@ -246,7 +246,7 @@ export class ContextPad {
     if (y === undefined) {
       y = node.y;
     }
-    const nodeModel = this.lf.getNodeModelById(sourceId);
+    const nodeModel = this.lf.getNodeModelById(sourceId)!;
     const leftTopX = node.x - nodeModel.width + NEXT_X_DISTANCE;
     const leftTopY = y! - node.y / 2 - 20;
     const rightBottomX = node.x + nodeModel.width + NEXT_X_DISTANCE;

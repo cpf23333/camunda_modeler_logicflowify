@@ -1,11 +1,9 @@
 import { GraphModel } from "@logicflow/core";
-import { GroupNode } from "@logicflow/extension";
+import { GroupNode, GroupNodeModel } from "@logicflow/extension";
 import { getGraphConfigData } from "../../plugins/Adapter";
 import { nodeDefinition } from "../../types";
-let view = GroupNode.view;
-let model = GroupNode.model;
-class subProcessView extends view {}
-class subProcessModel extends model {
+class subProcessView extends GroupNode {}
+class subProcessModel extends GroupNodeModel {
   constructor(data: any, graphModel: GraphModel) {
     super(data, graphModel);
     this.resizable = true;
@@ -27,8 +25,14 @@ export let subProcess: nodeDefinition = {
       lf: params.lf,
       plane: params.plane,
     });
-    params.graphConfigData.edges.push(...childG.edges);
-    params.graphConfigData.nodes.push(...childG.nodes);
+    if (!params.graphConfigData.edges) {
+      params.graphConfigData.edges = [];
+    }
+    if (!params.graphConfigData.nodes) {
+      params.graphConfigData.nodes = [];
+    }
+    params.graphConfigData.edges.push(...(childG.edges || []));
+    params.graphConfigData.nodes.push(...(childG.nodes || []));
     let childNodeIds: string[] = [...childG.children];
     return {
       form: {

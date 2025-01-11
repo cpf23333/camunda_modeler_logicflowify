@@ -1,6 +1,5 @@
-import {
+import LogicFlow, {
   GraphModel,
-  NodeConfig,
   RectNode,
   RectNodeModel,
   h,
@@ -13,7 +12,7 @@ import { nodeDefinition } from "../../types";
 import { getBpmnId } from "../../utils";
 class TaskModel extends RectNodeModel {
   static extendKey = "TaskModel";
-  constructor(data: NodeConfig, graphModel: GraphModel) {
+  constructor(data: LogicFlow.NodeConfig, graphModel: GraphModel) {
     if (!data.id) {
       data.id = `Activity_${getBpmnId()}`;
     }

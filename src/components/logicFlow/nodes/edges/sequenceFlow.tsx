@@ -1,8 +1,7 @@
 import { FormItem } from "@/components/Form";
 import { TextArea } from "@/components/Form/TextArea";
-import {
+import LogicFlow, {
   BaseNodeModel,
-  EdgeConfig,
   GraphModel,
   PolylineEdge,
   PolylineEdgeModel,
@@ -14,7 +13,7 @@ import { getBpmnId } from "../../utils";
 import { StartEvent } from "../event/startEvent";
 class SequenceFlowModel extends PolylineEdgeModel {
   static extendKey = "SequenceFlowModel";
-  constructor(data: EdgeConfig, graphModel: GraphModel) {
+  constructor(data: LogicFlow.EdgeConfig, graphModel: GraphModel) {
     if (!data.id) {
       data.id = `Flow_${getBpmnId()}`;
     }

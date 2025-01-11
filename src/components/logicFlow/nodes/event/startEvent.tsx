@@ -1,15 +1,14 @@
-import {
+import LogicFlow, {
   CircleNode,
   CircleNodeModel,
   GraphModel,
-  NodeConfig,
 } from "@logicflow/core";
 import { CustomIcon } from "solid-icons";
 import { nodeDefinition } from "../../types";
 import { getBpmnId } from "../../utils";
 class StartEventModel extends CircleNodeModel {
   static extendKey = "StartEventModel";
-  constructor(data: NodeConfig, graphModel: GraphModel) {
+  constructor(data: LogicFlow.NodeConfig, graphModel: GraphModel) {
     if (!data.id) {
       data.id = `Event_${getBpmnId()}`;
     }

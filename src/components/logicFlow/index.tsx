@@ -1,5 +1,5 @@
 import { downloadTxt, readFile } from "@/utils/file";
-import "@logicflow/core/dist/style/index.css";
+import "@logicflow/core/dist/index.css";
 import { Group, InsertNodeInPolyline } from "@logicflow/extension";
 import "@logicflow/extension/lib/style/index.css";
 import {
@@ -74,7 +74,6 @@ export let Flow: Component<Props> = (props) => {
     setShouldShowRightPanel(true);
     newLf.batchRegister(Object.values(allNodes));
     newLf.setDefaultEdgeType(sequenceFlow.type);
-    newLf.render();
     newLf.on("node:click,edge:click", (data) => {
       let nodeOrEdge = newLf.getModelById(data.data.id);
       setProviderData("currentModel", nodeOrEdge);
@@ -95,7 +94,7 @@ export let Flow: Component<Props> = (props) => {
       let file = fileList.item(0);
       if (file) {
         let content = await readFile(file);
-        providerData.lf.render(content);
+        providerData.lf.render(content as any);
       }
     }
   });
@@ -129,7 +128,7 @@ export let Flow: Component<Props> = (props) => {
                     try {
                       let val = e.target.value as ExportType;
                       if (val) {
-                        let xml = providerData.lf.getGraphData();
+                        let xml = providerData.lf.getGraphData() as string;
                         let name = "bpmn.bpmn";
                         if (val == ExportType.inputName) {
                           let inputName = prompt("请输入文件名", name);

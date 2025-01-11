@@ -3,9 +3,7 @@ import {
   BaseEdgeModel,
   BaseNode,
   BaseNodeModel,
-  EdgeConfig,
-  GraphConfigData,
-  NodeConfig,
+  LogicFlow,
 } from "@logicflow/core";
 import { JSX } from "solid-js/jsx-runtime";
 import { createStore } from "solid-js/store";
@@ -15,7 +13,7 @@ export type initParams = {
   model: BaseNodeModel | BaseEdgeModel;
 };
 export type BaseModel = BaseNodeModel | BaseEdgeModel;
-export type BaseView = BaseNode | BaseEdge;
+export type BaseView = BaseNode | BaseEdge<any>;
 type checkCurrentOrInitParams = {
   /**这个节点的json数据 */
   json: Readonly<Record<string, any>>;
@@ -73,7 +71,7 @@ export type adapterInParam<xmlJson = {}> = {
     "bpmndi:BPMNShape": any[];
     "bpmndi:BPMNEdge": any[];
   };
-  graphConfigData: GraphConfigData;
+  graphConfigData: LogicFlow.GraphConfigData;
 };
 
 export interface adapterOutData {
@@ -126,9 +124,9 @@ export interface nodeDefinition<
    */
   isEdge?: boolean;
   /**logicFlow注册节点时需要的model */
-  model: typeof BaseNodeModel | typeof BaseEdgeModel;
+  model: any;
   /**logicFlow注册节点时需要的view */
-  view: typeof BaseNode | typeof BaseEdge;
+  view: any;
   /**初始化节点面板数据
    *
    * 返回值就是存储的数据
@@ -169,10 +167,7 @@ export interface nodeDefinition<
    */
   adapterIn?: (params: adapterInParam<xmlJson>) => {
     /**logicFlow数据的属性字段 */
-    properties?: BaseModel["properties"] & {
-      /**元素的大小，这个字段会被导入功能自动填充，如果传入该字段，会和原始字段自动合并，请谨慎处理 */
-      nodeSize?: { height: number; width: number };
-    };
+    properties?: BaseModel["properties"];
     /**这个节点或线的属性面板数据 */
     form?: Partial<Forms>;
     /**如果是嵌套节点，需要给出子项节点id数组 */
@@ -188,22 +183,10 @@ export interface nodeDefinition<
     >,
   ) => adapterOutData;
 }
-export interface FixedNodeConfig extends NodeConfig {
-  id: string;
-  children?: string[];
-  properties: {
-    /**本节点的大小数据 */
-    nodeSize: {
-      width: number;
-      height: number;
-    };
-  } & {
-    [x in string]: any;
-  };
-}
-interface FixedEdgeConfig extends EdgeConfig {
-  id: string;
-}
+export type FixedNodeConfig = LogicFlow.NodeConfig & {
+  children?: Array<string>;
+};
+export type FixedEdgeConfig = LogicFlow.EdgeConfig;
 export interface fixedGraphConfigData {
   nodes: FixedNodeConfig[];
   edges: FixedEdgeConfig[];

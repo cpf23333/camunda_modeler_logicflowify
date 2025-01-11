@@ -1,7 +1,6 @@
 import { DateSelect } from "@/components/Form/date";
-import {
+import LogicFlow, {
   GraphModel,
-  NodeConfig,
   RectNode,
   RectNodeModel,
   h,
@@ -15,7 +14,7 @@ import { getBpmnId } from "../../utils";
 import { IOify } from "../../utils/nodeCommonLogics";
 class UserTaskModel extends RectNodeModel {
   static extendKey = "UserTaskModel";
-  constructor(data: NodeConfig, graphModel: GraphModel) {
+  constructor(data: LogicFlow.NodeConfig, graphModel: GraphModel) {
     if (!data.id) {
       data.id = `Activity_${getBpmnId()}`;
     }
